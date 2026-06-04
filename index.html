@@ -25,6 +25,11 @@
         #sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-open { transform: translateX(0); }
         .sidebar-closed { transform: translateX(-100%); }
+        .gauge-wrap { position: relative; width: 180px; height: 100px; margin: 0 auto; }
+        .gauge-bg { fill: none; stroke: #e2e8f0; stroke-width: 18; stroke-linecap: round; }
+        .gauge-fill { fill: none; stroke-width: 18; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s; }
+        .heatmap-cell { border-radius: 3px; transition: opacity 0.2s; cursor: default; }
+        .heatmap-cell:hover { opacity: 0.75; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
@@ -132,13 +137,41 @@
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
+                <!-- KPI cards row -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Saldo proyectado -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden sm:col-span-1">
                         <div class="relative z-10">
-                            <p class="text-indigo-100 text-sm font-medium mb-1">Saldo Base Actual</p>
-                            <h3 id="dash-saldo-actual" class="text-4xl font-bold tracking-tight">0.00 €</h3>
+                            <p class="text-indigo-100 text-xs font-medium mb-1">Saldo Proyectado (mes actual)</p>
+                            <h3 id="dash-saldo-actual" class="text-3xl font-bold tracking-tight">0.00 €</h3>
                         </div>
                         <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    </div>
+                    <!-- Runway -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <p class="text-xs font-medium text-slate-500 mb-1">Runway financiero</p>
+                        <div class="flex items-end gap-2">
+                            <span id="dash-runway-valor" class="text-3xl font-bold text-slate-800">—</span>
+                            <span class="text-sm text-slate-400 mb-1">meses</span>
+                        </div>
+                        <p id="dash-runway-label" class="text-xs mt-1 font-medium text-slate-400">Sin ingresos, aguantas este tiempo</p>
+                        <div id="dash-runway-semaforo" class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div id="dash-runway-barra" class="h-full rounded-full transition-all duration-700" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <!-- Tasa de ahorro -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <p class="text-xs font-medium text-slate-500 mb-1">Tasa de ahorro mensual</p>
+                        <div class="gauge-wrap mt-1">
+                            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+                                <path class="gauge-bg" d="M20,100 A80,80 0 0,1 180,100"/>
+                                <path id="gauge-fill-path" class="gauge-fill" d="M20,100 A80,80 0 0,1 180,100" stroke="#22c55e" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+                                <text id="gauge-pct-text" x="100" y="95" text-anchor="middle" font-size="26" font-weight="bold" fill="#1e293b">0%</text>
+                                <text x="18" y="116" font-size="11" fill="#94a3b8">0%</text>
+                                <text x="172" y="116" font-size="11" fill="#94a3b8">100%</text>
+                            </svg>
+                        </div>
+                        <p id="dash-ahorro-label" class="text-xs text-center text-slate-400 -mt-1">Ingresos vs gastos este mes</p>
                     </div>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -167,6 +200,48 @@
                         <p class="text-sm text-slate-500">Comparativa mes a mes de entradas y salidas durante los próximos 12 meses.</p>
                     </div>
                     <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
+                </div>
+
+                <!-- Gráfico de cascada (waterfall) -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-2 flex items-start justify-between flex-wrap gap-2">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-800">Cascada del Mes Actual</h3>
+                            <p class="text-sm text-slate-500">Cada bloque muestra cómo cada movimiento suma o resta al saldo.</p>
+                        </div>
+                    </div>
+                    <div class="relative h-72 w-full"><canvas id="waterfallChart"></canvas></div>
+                </div>
+
+                <!-- Heatmap anual -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Heatmap de Flujo Neto</h3>
+                        <p class="text-sm text-slate-500">Verde = superávit · Rojo = déficit · Intensidad = magnitud</p>
+                    </div>
+                    <div id="heatmap-container" class="overflow-x-auto"></div>
+                    <div class="flex items-center gap-2 mt-3 justify-center">
+                        <span class="text-xs text-slate-400">Déficit</span>
+                        <div class="flex gap-0.5">
+                            <div class="w-4 h-4 rounded" style="background:#fca5a5"></div>
+                            <div class="w-4 h-4 rounded" style="background:#f87171"></div>
+                            <div class="w-4 h-4 rounded" style="background:#ef4444"></div>
+                            <div class="w-4 h-4 rounded" style="background:#e2e8f0"></div>
+                            <div class="w-4 h-4 rounded" style="background:#86efac"></div>
+                            <div class="w-4 h-4 rounded" style="background:#4ade80"></div>
+                            <div class="w-4 h-4 rounded" style="background:#16a34a"></div>
+                        </div>
+                        <span class="text-xs text-slate-400">Superávit</span>
+                    </div>
+                </div>
+
+                <!-- Área apilada por categorías -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Gastos por Categoría — Primer Año</h3>
+                        <p class="text-sm text-slate-500">Evolución mes a mes del peso de cada categoría de gasto.</p>
+                    </div>
+                    <div class="relative h-72 w-full"><canvas id="stackedAreaChart"></canvas></div>
                 </div>
             </section>
 
@@ -364,7 +439,7 @@
         });
 
         /* --- 2. GESTIÓN BASE DE DATOS LOCAL (INDEXEDDB) --- */
-        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0;
+        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0;
 
         function initDB() {
             return new Promise((resolve) => {
@@ -723,7 +798,6 @@
         async function actualizarTodo() {
 			if (!cuentaActivaId) return;
 			
-			// 1. Obtener datos
 			const cuenta = await dbGet('cuentas', cuentaActivaId);
 			const todos = await dbGetAll('movimientos');
 			const movs = todos.filter(m => m.cuentaId === cuentaActivaId);
@@ -735,51 +809,61 @@
 			let acumulado = parseFloat(cuenta.base) || 0;
 			let saldoMesActual = null;
 
-			// Datos para gráficos adicionales
+			// Datos gráficos adicionales
 			let totalIngresos = 0;
 			let totalGastos = 0;
 			const barLabels = [];
 			const barIngresos = [];
 			const barGastos = [];
 
-			// El límite total de meses según el horizonte seleccionado
+			// Heatmap: neto por mes durante el horizonte
+			const heatmapData = []; // {mesStr, neto}
+
+			// Stacked area: gastos por categoría (motivo) primer año
+			const categoriasGasto = {}; // motivo -> [12 valores]
+			const stackedLabels = [];
+
+			// Waterfall: movimientos del mes actual
+			const wfMovs = [];
+			let wfSaldoInicial = parseFloat(cuenta.base) || 0;
+
 			const limiteMeses = aniosProyeccion * 12;
 			const tasaMensual = interesCompuestoMensual / 100;
 
+			// Calcular saldo acumulado hasta inicio del mes actual para el waterfall
+			for (let i = 0; i < 0; i++) {} // placeholder, calculado abajo
+
+			// Pre-calcular saldo al inicio del mes actual (i=0 es el mes actual)
+			let saldoPreMesActual = parseFloat(cuenta.base) || 0;
+
 			for (let i = 0; i <= limiteMeses; i++) {
-				// Generar fecha del mes que estamos calculando
 				let fechaActual = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
 				let mesStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`;
 				
 				let ingresosMes = 0;
 				let gastosMes = 0;
+				const movsMes = []; // para waterfall
 
-				// 2. Evaluar cada movimiento para este mes
 				movs.forEach(m => {
-					let inicioMov = m.fechaInicio;
 					let esValido = false;
-
 					if (!m.recurrente) {
-						if (mesStr === inicioMov) esValido = true;
+						if (mesStr === m.fechaInicio) esValido = true;
 					} else {
-						if (mesStr >= inicioMov) {
-							if (m.tieneLimite && m.fechaFin) {
-								if (mesStr <= m.fechaFin) esValido = true;
-							} else {
-								esValido = true;
-							}
+						if (mesStr >= m.fechaInicio) {
+							if (m.tieneLimite && m.fechaFin) { if (mesStr <= m.fechaFin) esValido = true; }
+							else esValido = true;
 						}
 					}
-
 					if (esValido) {
 						if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
 						else gastosMes += m.cantidad;
+						if (mesStr === mesHoyStr) movsMes.push(m);
 					}
 				});
 
 				const variacionMes = ingresosMes - gastosMes;
+				const saldoAntesDeMes = acumulado;
 
-				// Aplicar interés compuesto: el interés se calcula sobre el saldo acumulado antes de sumar la variación del mes
 				if (tasaMensual > 0) {
 					acumulado = acumulado * (1 + tasaMensual) + variacionMes;
 				} else {
@@ -788,29 +872,65 @@
 
 				labels.push(mesStr);
 				data.push(acumulado);
-
-				// Acumular totales para gráfico de tarta
 				totalIngresos += ingresosMes;
 				totalGastos += gastosMes;
+				heatmapData.push({ mesStr, neto: variacionMes });
 
-				// Acumular datos para gráfico de barras (solo primer año = 12 meses)
+				// Barras primer año
 				if (i > 0 && i <= 12) {
-					const nombresMeses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-					barLabels.push(nombresMeses[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+					const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+					barLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
 					barIngresos.push(ingresosMes);
 					barGastos.push(gastosMes);
 				}
 
-				// Guardar el saldo al cierre del mes actual
-				if (mesStr === mesHoyStr) saldoMesActual = acumulado;
+				// Stacked area primer año (i=1..12)
+				if (i >= 1 && i <= 12) {
+					const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+					stackedLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+					movs.forEach(m => {
+						if (m.tipo !== 'gasto') return;
+						let esValido = false;
+						if (!m.recurrente) { if (mesStr === m.fechaInicio) esValido = true; }
+						else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) esValido = true; } }
+						if (esValido) {
+							if (!categoriasGasto[m.motivo]) categoriasGasto[m.motivo] = new Array(12).fill(0);
+							const idx = i - 1;
+							categoriasGasto[m.motivo][idx] = (categoriasGasto[m.motivo][idx] || 0) + m.cantidad;
+						}
+					});
+				}
+
+				// Waterfall mes actual
+				if (mesStr === mesHoyStr) {
+					saldoMesActual = acumulado;
+					wfSaldoInicial = saldoAntesDeMes;
+					movsMes.forEach(m => wfMovs.push(m));
+				}
 			}
 
-			// 3. Actualizar UI: mostrar saldo proyectado al mes actual
+			// KPI: saldo
 			const saldoMostrar = saldoMesActual !== null ? saldoMesActual : data[0];
 			document.getElementById('dash-saldo-actual').innerText = saldoMostrar.toFixed(2) + ' €';
+
+			// KPI: Velocímetro de ahorro (mes actual)
+			const ingMesActual = barIngresos[0] || 0;
+			const gastMesActual = barGastos[0] || 0;
+			const tasaAhorro = ingMesActual > 0 ? Math.max(0, Math.min(100, ((ingMesActual - gastMesActual) / ingMesActual) * 100)) : 0;
+			renderGauge(tasaAhorro, ingMesActual, gastMesActual);
+
+			// KPI: Runway
+			const gastoMedioMensual = totalGastos > 0 ? totalGastos / limiteMeses : 0;
+			const runway = gastoMedioMensual > 0 ? Math.floor(saldoMostrar / gastoMedioMensual) : null;
+			renderRunway(runway);
+
+			// Gráficas
 			renderChart(labels, data);
 			renderPieChart(totalIngresos, totalGastos);
 			renderBarChart(barLabels, barIngresos, barGastos);
+			renderWaterfall(wfSaldoInicial, wfMovs, mesHoyStr);
+			renderHeatmap(heatmapData);
+			renderStackedArea(stackedLabels, categoriasGasto);
 		}
 
         function renderChart(labels, data) {
@@ -876,6 +996,216 @@
                     scales: {
                         x: { grid: { display: false }, ticks: { font: { size: 11 } } },
                         y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
+        }
+
+        function renderGauge(pct, ingresos, gastos) {
+            const path = document.getElementById('gauge-fill-path');
+            const text = document.getElementById('gauge-pct-text');
+            const label = document.getElementById('dash-ahorro-label');
+            if (!path) return;
+            const arcLen = 251.2;
+            const offset = arcLen - (arcLen * pct / 100);
+            path.style.strokeDashoffset = offset;
+            const color = pct >= 20 ? '#22c55e' : pct >= 5 ? '#f59e0b' : '#ef4444';
+            path.style.stroke = color;
+            text.textContent = Math.round(pct) + '%';
+            text.style.fill = color;
+            if (ingresos === 0) label.textContent = 'Sin ingresos registrados';
+            else label.textContent = `Ahorro: ${(ingresos - gastos).toFixed(0)} € de ${ingresos.toFixed(0)} €`;
+        }
+
+        function renderRunway(meses) {
+            const valor = document.getElementById('dash-runway-valor');
+            const labelEl = document.getElementById('dash-runway-label');
+            const barra = document.getElementById('dash-runway-barra');
+            if (meses === null || meses < 0) {
+                valor.textContent = '∞'; barra.style.width = '100%'; barra.style.background = '#22c55e';
+                labelEl.textContent = 'Sin gastos proyectados — saldo seguro';
+                return;
+            }
+            valor.textContent = meses;
+            const pctBarra = Math.min(100, (meses / 24) * 100);
+            barra.style.width = pctBarra + '%';
+            barra.style.background = meses >= 6 ? '#22c55e' : meses >= 3 ? '#f59e0b' : '#ef4444';
+            if (meses >= 12) labelEl.textContent = '✓ Muy estable — más de un año cubierto';
+            else if (meses >= 6) labelEl.textContent = 'Buena reserva — entre 6 y 12 meses';
+            else if (meses >= 3) labelEl.textContent = '⚠ Reserva justa — menos de 6 meses';
+            else labelEl.textContent = '⚠ Reserva crítica — menos de 3 meses';
+        }
+
+        function renderWaterfall(saldoInicial, movimientos, mesStr) {
+            const ctx = document.getElementById('waterfallChart').getContext('2d');
+            if (currentWaterfallChart) currentWaterfallChart.destroy();
+
+            const wfLabels = ['Saldo inicial'];
+            const wfBase = [0];
+            const wfAltura = [saldoInicial];
+            const wfColores = ['rgba(79,70,229,0.75)'];
+
+            let acum = saldoInicial;
+            movimientos.forEach(m => {
+                const val = m.tipo === 'ingreso' ? m.cantidad : -m.cantidad;
+                wfLabels.push(m.concepto.length > 12 ? m.concepto.slice(0, 12) + '…' : m.concepto);
+                wfBase.push(val >= 0 ? acum : acum + val);
+                wfAltura.push(Math.abs(val));
+                wfColores.push(val >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(244,63,94,0.8)');
+                acum += val;
+            });
+
+            wfLabels.push('Saldo final');
+            wfBase.push(0);
+            wfAltura.push(acum);
+            wfColores.push(acum >= saldoInicial ? 'rgba(79,70,229,0.9)' : 'rgba(244,63,94,0.9)');
+
+            if (movimientos.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sin movimientos en el mes actual.</div>';
+                return;
+            }
+
+            currentWaterfallChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: wfLabels,
+                    datasets: [
+                        { label: 'Base', data: wfBase, backgroundColor: 'transparent', borderWidth: 0, stack: 'wf' },
+                        { label: 'Importe', data: wfAltura, backgroundColor: wfColores, borderRadius: 4, stack: 'wf' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    if (ctx.datasetIndex === 0) return null;
+                                    const base = ctx.chart.data.datasets[0].data[ctx.dataIndex];
+                                    const h = ctx.raw;
+                                    const final = base + h;
+                                    return ` ${final >= 0 ? '+' : ''}${(base === 0 && ctx.dataIndex !== wfLabels.length - 1 ? h : final).toFixed(2)} €`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+                        y: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
+                    }
+                }
+            });
+        }
+
+        function renderHeatmap(heatmapData) {
+            const container = document.getElementById('heatmap-container');
+            if (!container) return;
+            if (heatmapData.length === 0) { container.innerHTML = '<p class="text-center text-slate-400 text-sm py-4">Sin datos.</p>'; return; }
+
+            const nombresMeses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+            // Agrupar por año
+            const porAnio = {};
+            heatmapData.forEach(({ mesStr, neto }) => {
+                const [anio, mes] = mesStr.split('-');
+                if (!porAnio[anio]) porAnio[anio] = {};
+                porAnio[anio][parseInt(mes) - 1] = neto;
+            });
+
+            const maxAbs = Math.max(...heatmapData.map(d => Math.abs(d.neto)), 1);
+
+            const colorCell = (neto) => {
+                const t = Math.min(1, Math.abs(neto) / maxAbs);
+                if (neto > 0) {
+                    const g = Math.round(134 + t * (22 - 134)); // 86..22
+                    const r = Math.round(239 - t * (239 - 22)); // lightest to darkest green
+                    return `rgb(${Math.round(22 + (1-t)*214)},${Math.round(163 + (1-t)*92)},${Math.round(74 + (1-t)*166)})`;
+                } else if (neto < 0) {
+                    const intensity = t;
+                    return `rgb(${Math.round(239 - (1-intensity)*15)},${Math.round(68 + (1-intensity)*97)},${Math.round(68 + (1-intensity)*97)})`;
+                }
+                return '#e2e8f0';
+            };
+
+            // Mejor función de color
+            const getColor = (neto) => {
+                if (neto === 0) return '#e2e8f0';
+                const t = Math.min(1, Math.abs(neto) / maxAbs);
+                if (neto > 0) {
+                    // verde claro -> oscuro
+                    const r = Math.round(134 - t * 112);
+                    const g = Math.round(239 - t * 97);
+                    const b = Math.round(172 - t * 150);
+                    return `rgb(${r},${g},${b})`;
+                } else {
+                    const r = Math.round(252 - t * 13);
+                    const g = Math.round(165 - t * 97);
+                    const b = Math.round(165 - t * 97);
+                    return `rgb(${r},${g},${b})`;
+                }
+            };
+
+            let html = '<div style="min-width:420px"><table class="w-full border-separate" style="border-spacing:3px">';
+            html += '<thead><tr><th class="text-left text-xs text-slate-400 font-medium pb-1" style="width:40px">Año</th>';
+            nombresMeses.forEach(m => { html += `<th class="text-center text-xs text-slate-400 font-medium pb-1">${m}</th>`; });
+            html += '</tr></thead><tbody>';
+
+            Object.keys(porAnio).sort().forEach(anio => {
+                html += `<tr><td class="text-xs font-bold text-slate-600 pr-2">${anio}</td>`;
+                for (let m = 0; m < 12; m++) {
+                    const neto = porAnio[anio][m] ?? null;
+                    if (neto === null) {
+                        html += '<td></td>';
+                    } else {
+                        const color = getColor(neto);
+                        const title = `${nombresMeses[m]} ${anio}: ${neto >= 0 ? '+' : ''}${neto.toFixed(2)} €`;
+                        html += `<td><div class="heatmap-cell" style="background:${color};height:28px;" title="${title}"></div></td>`;
+                    }
+                }
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function renderStackedArea(labels, categoriasGasto) {
+            const ctx = document.getElementById('stackedAreaChart').getContext('2d');
+            if (currentStackedChart) currentStackedChart.destroy();
+            const categorias = Object.keys(categoriasGasto);
+            if (categorias.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sin gastos categorizados.</div>';
+                return;
+            }
+            const palette = ['#6366f1','#f43f5e','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16'];
+            const datasets = categorias.map((cat, i) => ({
+                label: cat,
+                data: categoriasGasto[cat],
+                backgroundColor: palette[i % palette.length].replace(')', ',0.7)').replace('rgb', 'rgba').replace('#', 'rgba(') || palette[i % palette.length] + 'b3',
+                borderColor: palette[i % palette.length],
+                borderWidth: 1.5,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2
+            }));
+
+            // Fix colors properly
+            datasets.forEach((ds, i) => {
+                const hex = palette[i % palette.length];
+                const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+                ds.backgroundColor = `rgba(${r},${g},${b},0.55)`;
+                ds.borderColor = hex;
+            });
+
+            currentStackedChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 12 } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                        y: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
                     },
                     interaction: { mode: 'index', intersect: false }
                 }

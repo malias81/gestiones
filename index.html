@@ -27,6 +27,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
 
+    <!-- MENU LATERAL -->
     <div id="sidebar" class="sidebar-closed fixed inset-y-0 left-0 w-64 bg-indigo-700 text-white shadow-xl z-50 flex flex-col">
         <div class="p-6 flex justify-between items-center border-b border-indigo-600">
             <h2 class="text-2xl font-bold">Mis Finanzas</h2>
@@ -34,6 +35,8 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
+        
+        <!-- Navegación Principal (Ocupa el espacio disponible) -->
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
             <button onclick="navigateTo('dashboard')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
@@ -57,6 +60,19 @@
                 Instalar App
             </button>
         </nav>
+
+        <!-- Opciones del Menú Inferior (Exportar / Importar fijados abajo) -->
+        <div class="p-4 border-t border-indigo-600 space-y-1 bg-indigo-800">
+            <button onclick="exportarDatos()" class="w-full flex items-center p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
+                <svg class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Exportar Datos
+            </button>
+            <button onclick="document.getElementById('import-input').click()" class="w-full flex items-center p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
+                <svg class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Importar Datos
+            </button>
+            <input type="file" id="import-input" class="hidden" accept=".json" onchange="importarDatos(event)">
+        </div>
     </div>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"></div>
@@ -89,7 +105,7 @@
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
+                        <h3 class="text-lg font-semibold text-slate-800">Proyección a 5 years</h3>
                         <p class="text-sm text-slate-500">Evolución estimada basada en base y movimientos recurrentes.</p>
                     </div>
                     <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
@@ -177,12 +193,11 @@
                                     <th class="p-4">Detalle</th>
                                     <th class="p-4">Tipo</th>
                                     <th class="p-4">Importe</th>
-                                    <th class="p-4">Vigencia</th>
+                                    <th class="p-4 text-xs">Vigencia</th>
                                     <th class="p-4 text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-movimientos-body" class="divide-y divide-slate-100 text-sm">
-                                </tbody>
+                            <tbody id="tabla-movimientos-body" class="divide-y divide-slate-100 text-sm"></tbody>
                         </table>
                     </div>
                     <div id="historial-vacio" class="hidden p-8 text-center text-slate-400 text-sm">No hay movimientos registrados en esta cuenta todavía.</div>
@@ -204,6 +219,7 @@
         </main>
     </div>
 
+    <!-- MODALES -->
     <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
             <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">Mensaje</h3>
@@ -231,7 +247,7 @@
     </div>
 
     <script>
-        /* --- 1. AJUSTES PWA COMPATIBLES --- */
+        /* --- 1. AJUSTES PWA --- */
         const manifestData = {
             "name": "Mis Finanzas", "short_name": "Finanzas", "start_url": ".", "display": "standalone",
             "background_color": "#f8fafc", "theme_color": "#4f46e5",
@@ -291,6 +307,9 @@
         function dbDelete(store, id) {
             return new Promise((res) => { const req = db.transaction(store, 'readwrite').objectStore(store).delete(id); req.onsuccess = () => res(); });
         }
+        function dbClear(store) {
+            return new Promise((res) => { const req = db.transaction(store, 'readwrite').objectStore(store).clear(); req.onsuccess = () => res(); });
+        }
 
         /* --- 3. INICIALIZACIÓN Y NAVEGACIÓN --- */
         document.addEventListener('DOMContentLoaded', async () => {
@@ -343,7 +362,7 @@
             if(document.getElementById('view-historial').classList.contains('active')) renderHistorialMovimientos();
         }
 
-        /* --- 4. CRUD DE MOVIMIENTOS (HISTORIAL, EDICIÓN Y BORRADO) --- */
+        /* --- 4. CRUD DE MOVIMIENTOS --- */
         function toggleFechaLimite() {
             const rec = document.getElementById('mov-recurrente').checked;
             document.getElementById('container-fecha-limite').classList.toggle('hidden', !rec);
@@ -462,7 +481,7 @@
             }
         }
 
-        /* --- 5. CRUD DE CUENTAS (MANTENIDO) --- */
+        /* --- 5. CRUD DE CUENTAS --- */
         async function guardarNuevaCuenta(e) {
             e.preventDefault();
             const n = document.getElementById('nueva-cuenta-nombre').value;
@@ -533,6 +552,50 @@
                 type: 'line', data: { labels: labels, datasets: [{ label: 'Saldo (€)', data: data, borderColor: '#4f46e5', backgroundColor: gradient, borderWidth: 3, pointRadius: 0, fill: true, tension: 0.3 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }, y: { grid: { color: '#f1f5f9' } } }, interaction: { mode: 'index', intersect: false } }
             });
+        }
+
+        /* --- 7. FUNCIONES DE EXPORTACIÓN E IMPORTACIÓN --- */
+        async function exportarDatos() {
+            const cuentas = await dbGetAll('cuentas');
+            const movimientos = await dbGetAll('movimientos');
+            const backup = { cuentas, movimientos };
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `finanzas_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importarDatos(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (!data.cuentas || !data.movimientos) throw new Error();
+                    
+                    if (confirm('¿Deseas importar los datos? Esto reemplazará las cuentas y movimientos actuales.')) {
+                        await dbClear('cuentas');
+                        await dbClear('movimientos');
+                        
+                        for (let c of data.cuentas) { await dbPut('cuentas', c); }
+                        for (let m of data.movimientos) { await dbPut('movimientos', m); }
+                        
+                        mostrarMensaje('¡Éxito!', 'Datos importados correctamente.');
+                        await comprobarCuentasIniciales();
+                        await cargarSelectoresCuentas();
+                        actualizarDashboard();
+                    }
+                } catch (err) {
+                    mostrarMensaje('Error', 'El archivo no tiene un formato válido.');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = ''; // Reset input file
         }
     </script>
 </body>

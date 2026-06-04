@@ -685,7 +685,7 @@
             }
         }
 
-        /* --- 7. MOTOR GRÁFICA Y CÁLCULOS FUTUROS (CORREGIDO) --- */
+        /* --- 7. MOTOR GRÁFICA Y CÁLCULOS FUTUROS --- */
         async function actualizarTodo() {
 			if (!cuentaActivaId) return;
 			
@@ -695,9 +695,11 @@
 			const movs = todos.filter(m => m.cuentaId === cuentaActivaId);
 
 			const hoy = new Date();
+			const mesHoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
 			const labels = [];
 			const data = [];
 			let acumulado = parseFloat(cuenta.base) || 0;
+			let saldoMesActual = null;
 
 			// El límite total de meses según el horizonte seleccionado
 			const limiteMeses = aniosProyeccion * 12;
@@ -711,29 +713,25 @@
 
 				// 2. Evaluar cada movimiento para este mes
 				movs.forEach(m => {
-					// Convertimos la fecha inicio del movimiento a formato comparable
 					let inicioMov = m.fechaInicio; // formato "YYYY-MM"
-					
-					// Lógica de vigencia:
 					let esValido = false;
 
 					if (!m.recurrente) {
-						// Si es un movimiento único (no recurrente), solo aplica si coincide el mes
+						// Movimiento único: solo aplica si coincide el mes de inicio
 						if (mesStr === inicioMov) esValido = true;
 					} else {
-						// Si es recurrente, debe ser igual o posterior a la fecha de inicio
+						// Recurrente: debe haber comenzado (mesStr >= inicio)
 						if (mesStr >= inicioMov) {
-							// Si tiene límite, validamos que no se haya superado la fecha fin
 							if (m.tieneLimite && m.fechaFin) {
+								// Con fecha límite: solo aplica hasta fechaFin inclusive
 								if (mesStr <= m.fechaFin) esValido = true;
 							} else {
-								// Si no tiene límite, es un movimiento perpetuo
+								// Sin límite: perpetuo
 								esValido = true;
 							}
 						}
 					}
 
-					// Si el movimiento es válido en este mes, lo sumamos o restamos
 					if (esValido) {
 						variacionMes += (m.tipo === 'ingreso' ? m.cantidad : -m.cantidad);
 					}
@@ -742,10 +740,14 @@
 				acumulado += variacionMes;
 				labels.push(mesStr);
 				data.push(acumulado);
+
+				// Guardar el saldo al cierre del mes actual
+				if (mesStr === mesHoyStr) saldoMesActual = acumulado;
 			}
 
-			// 3. Actualizar UI
-			document.getElementById('dash-saldo-actual').innerText = acumulado.toFixed(2) + ' €';
+			// 3. Actualizar UI: mostrar saldo proyectado al mes actual
+			const saldoMostrar = saldoMesActual !== null ? saldoMesActual : data[0];
+			document.getElementById('dash-saldo-actual').innerText = saldoMostrar.toFixed(2) + ' €';
 			renderChart(labels, data);
 		}
 

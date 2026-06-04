@@ -44,9 +44,13 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Nuevo Movimiento
             </button>
-            <button onclick="navigateTo('historial')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+            <button onclick="navigateTo('historial-meses')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Historial por Meses
+            </button>
+            <button onclick="navigateTo('movimientos-activos')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                Historial Movimientos
+                Movimientos Activos
             </button>
             <button onclick="navigateTo('cuentas')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
@@ -90,6 +94,16 @@
                         <label class="block text-sm font-medium text-slate-500 mb-1">Cuenta activa global</label>
                         <select id="global-cuenta-select" onchange="cambiarCuentaActiva(this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5"></select>
                     </div>
+                    <div class="w-full sm:w-auto flex flex-col items-start sm:items-end">
+                        <label class="block text-sm font-medium text-slate-500 mb-1">Horizonte temporal</label>
+                        <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                            <button onclick="cambiarAniosProyeccion(1, this)" class="btn-anio px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all">1 Año</button>
+                            <button onclick="cambiarAniosProyeccion(2, this)" class="btn-anio px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all">2 Años</button>
+                            <button onclick="cambiarAniosProyeccion(5, this)" class="btn-anio px-3 py-1.5 text-xs font-semibold rounded-md bg-white text-indigo-700 shadow-sm transition-all">5 Años</button>
+                            <button onclick="cambiarAniosProyeccion(10, this)" class="btn-anio px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all">10 Años</button>
+                            <button onclick="cambiarAniosProyeccion(15, this)" class="btn-anio px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition-all">15 Años</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 gap-4">
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
@@ -102,7 +116,7 @@
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
+                        <h3 id="titulo-grafica-proyeccion" class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
                         <p class="text-sm text-slate-500">Evolución estimada basada en base y movimientos recurrentes.</p>
                     </div>
                     <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
@@ -167,20 +181,42 @@
                             </div>
                         </div>
                         <div class="flex gap-3">
-                            <button type="button" id="cancel-edit-btn" onclick="limpiarFormularioMovimiento(); navigateTo('historial');" class="hidden flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200">Cancelar Edición</button>
+                            <button type="button" id="cancel-edit-btn" onclick="limpiarFormularioMovimiento(); navigateTo('movimientos-activos');" class="hidden flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200">Cancelar Edición</button>
                             <button type="submit" id="submit-mov-btn" class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-3 text-center shadow-md">Guardar Movimiento</button>
                         </div>
                     </form>
                 </div>
             </section>
 
-            <section id="view-historial" class="view-section max-w-3xl mx-auto space-y-4">
+            <section id="view-historial-meses" class="view-section max-w-3xl mx-auto space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800">Cierre e Historial por Meses</h3>
+                    <p class="text-xs text-slate-500">Flujo consolidado y saldos resultantes reales hasta el mes actual.</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <th class="p-4">Mes / Período</th>
+                                    <th class="p-4">Ingresos</th>
+                                    <th class="p-4">Gastos</th>
+                                    <th class="p-4">Saldo Cierre</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-meses-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-movimientos-activos" class="view-section max-w-3xl mx-auto space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">Historial de Transacciones</h3>
-                        <p class="text-xs text-slate-500">Mostrando movimientos de la cuenta seleccionada</p>
+                        <h3 class="text-lg font-bold text-slate-800">Gestión de Movimientos Activos</h3>
+                        <p class="text-xs text-slate-500">Reglas configuradas que componen tu simulación financiera.</p>
                     </div>
-                    <button onclick="limpiarFormularioMovimiento(); navigateTo('movimiento')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs px-3 py-2 rounded-lg font-medium transition-colors">+ Añadir</button>
+                    <button onclick="limpiarFormularioMovimiento(); navigateTo('movimiento')" class="bg-indigo-600 text-white hover:bg-indigo-700 text-xs px-3 py-2 rounded-lg font-medium transition-colors">+ Nuevo Movimiento</button>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                     <div class="overflow-x-auto">
@@ -190,14 +226,14 @@
                                     <th class="p-4">Detalle</th>
                                     <th class="p-4">Tipo</th>
                                     <th class="p-4">Importe</th>
-                                    <th class="p-4 text-xs">Vigencia</th>
+                                    <th class="p-4">Vigencia</th>
                                     <th class="p-4 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-movimientos-body" class="divide-y divide-slate-100 text-sm"></tbody>
                         </table>
                     </div>
-                    <div id="historial-vacio" class="hidden p-8 text-center text-slate-400 text-sm">No hay movimientos registrados en esta cuenta todavía.</div>
+                    <div id="historial-vacio" class="hidden p-8 text-center text-slate-400 text-sm">No tienes ningún movimiento activo en esta cuenta.</div>
                 </div>
             </section>
 
@@ -271,7 +307,7 @@
         });
 
         /* --- 2. GESTIÓN BASE DE DATOS LOCAL (INDEXEDDB) --- */
-        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null;
+        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let aniosProyeccion = 5;
 
         function initDB() {
             return new Promise((resolve) => {
@@ -315,14 +351,22 @@
             actualizarTodo();
         });
 
-        const views = { 'dashboard': 'Proyecciones', 'movimiento': 'Añadir Movimiento', 'historial': 'Historial de Movimientos', 'cuentas': 'Mis Cuentas' };
+        const views = { 
+            'dashboard': 'Proyecciones', 
+            'movimiento': 'Añadir Movimiento', 
+            'historial-meses': 'Historial por Meses', 
+            'movimientos-activos': 'Movimientos Activos', 
+            'cuentas': 'Mis Cuentas' 
+        };
+        
         function navigateTo(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
             document.getElementById('header-title').innerText = views[viewId];
             if(!document.getElementById('sidebar').classList.contains('sidebar-closed')) toggleSidebar();
             if(viewId === 'dashboard') actualizarTodo();
-            if(viewId === 'historial') renderHistorialMovimientos();
+            if(viewId === 'historial-meses') renderHistorialMeses();
+            if(viewId === 'movimientos-activos') renderMovimientosActivos();
             if(viewId === 'cuentas') renderListaCuentas();
         }
 
@@ -356,11 +400,24 @@
             cuentaActivaId = parseInt(id);
             document.getElementById('mov-cuenta-select').value = id;
             actualizarTodo();
-            if(document.getElementById('view-historial').classList.contains('active')) renderHistorialMovimientos();
+            if(document.getElementById('view-historial-meses').classList.contains('active')) renderHistorialMeses();
+            if(document.getElementById('view-movimientos-activos').classList.contains('active')) renderMovimientosActivos();
             if(document.getElementById('view-cuentas').classList.contains('active')) renderListaCuentas();
         }
 
-        /* --- 4. CONTROL DE REGLAS / MOVIMIENTOS --- */
+        function cambiarAniosProyeccion(anios, elementoBtn) {
+            aniosProyeccion = anios;
+            document.querySelectorAll('.btn-anio').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-indigo-700', 'shadow-sm');
+                btn.classList.add('text-slate-600', 'hover:text-slate-900');
+            });
+            elementoBtn.classList.remove('text-slate-600', 'hover:text-slate-900');
+            elementoBtn.classList.add('bg-white', 'text-indigo-700', 'shadow-sm');
+            document.getElementById('titulo-grafica-proyeccion').innerText = `Proyección a ${anios} ${anios === 1 ? 'año' : 'años'}`;
+            actualizarTodo();
+        }
+
+        /* --- 4. CONTROL DE REGLAS / FORMULARIO --- */
         function toggleFechaLimite() {
             const rec = document.getElementById('mov-recurrente').checked;
             document.getElementById('container-fecha-limite').classList.toggle('hidden', !rec);
@@ -412,10 +469,81 @@
                 mostrarMensaje('¡Éxito!', 'Movimiento guardado con éxito.');
             }
             limpiarFormularioMovimiento();
-            navigateTo('historial');
+            navigateTo('movimientos-activos');
         }
 
-        async function renderHistorialMovimientos() {
+        /* --- 5. RENDERIZADO DE LAS NUEVAS VISTAS --- */
+        async function renderHistorialMeses() {
+            if (!cuentaActivaId) return;
+            const cuenta = await dbGet('cuentas', cuentaActivaId);
+            if (!cuenta) return;
+            const todos = await dbGetAll('movimientos');
+            const movs = todos.filter(m => m.cuentaId === cuentaActivaId);
+
+            const tbody = document.getElementById('tabla-meses-body');
+            tbody.innerHTML = '';
+
+            const hoy = new Date();
+            const currentYear = hoy.getFullYear();
+            const currentMonth = hoy.getMonth();
+            const mesActualStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+
+            // Encontrar el mes más antiguo registrado para comenzar desde ahí
+            let minFechaStr = mesActualStr;
+            movs.forEach(m => { if (m.fechaInicio < minFechaStr) minFechaStr = m.fechaInicio; });
+
+            let startParts = minFechaStr.split('-');
+            let startIdx = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, 1);
+            let endIdx = new Date(currentYear, currentMonth, 1);
+
+            let balanceSimulado = parseFloat(cuenta.base) || 0;
+            let listaMeses = [];
+
+            let diffMeses = (endIdx.getFullYear() - startIdx.getFullYear()) * 12 + (endIdx.getMonth() - startIdx.getMonth());
+            if (diffMeses < 0) diffMeses = 0;
+
+            for (let i = 0; i <= diffMeses; i++) {
+                let f = new Date(startIdx.getFullYear(), startIdx.getMonth() + i, 1);
+                let mesStr = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
+                
+                let ingresosMes = 0;
+                let gastosMes = 0;
+
+                movs.forEach(m => {
+                    let aplicar = false;
+                    if (!m.recurrente) { if (m.fechaInicio === mesStr) aplicar = true; }
+                    else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) aplicar = true; } }
+                    
+                    if (aplicar) {
+                        if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
+                        else gastosMes += m.cantidad;
+                    }
+                });
+
+                balanceSimulado += (ingresosMes - gastosMes);
+                listaMeses.push({ mes: mesStr, ingresos: ingresosMes, gastos: gastosMes, saldo: balanceSimulado });
+            }
+
+            let mesesHtml = '';
+            const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            
+            listaMeses.reverse().forEach(item => {
+                let [anio, mesNum] = item.mes.split('-');
+                let nombreMesCompacto = `${nombresMeses[parseInt(mesNum)-1]} ${anio}`;
+                mesesHtml += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-semibold text-slate-700">${nombreMesCompacto}</td>
+                        <td class="p-4 text-green-600 font-medium">+${item.ingresos.toFixed(2)} €</td>
+                        <td class="p-4 text-red-600 font-medium">-${item.gastos.toFixed(2)} €</td>
+                        <td class="p-4 font-bold text-slate-900">${item.saldo.toFixed(2)} €</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = mesesHtml || '<tr><td colspan="4" class="p-4 text-center text-slate-400">Sin registros previos.</td></tr>';
+        }
+
+        async function renderMovimientosActivos() {
             const todos = await dbGetAll('movimientos');
             const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId);
             const tbody = document.getElementById('tabla-movimientos-body');
@@ -472,13 +600,13 @@
         }
 
         async function eliminarMovimientoInPlace(id) {
-            if (confirm('¿Seguro que deseas eliminar este movimiento de las proyecciones?')) {
+            if (confirm('¿Seguro que deseas eliminar este movimiento activo?')) {
                 await dbDelete('movimientos', id);
-                renderHistorialMovimientos();
+                renderMovimientosActivos();
             }
         }
 
-        /* --- 5. LOGICA COMPLETA DE CUENTAS (NUEVO10) --- */
+        /* --- 6. LOGICA DE CUENTAS --- */
         async function guardarNuevaCuenta(e) {
             e.preventDefault();
             const n = document.getElementById('nueva-cuenta-nombre').value;
@@ -524,7 +652,7 @@
             }
         }
 
-        /* --- 6. MOTOR GRÁFICA Y CÁLCULOS (ACTUALIZARTODO) --- */
+        /* --- 7. MOTOR GRÁFICA Y CÁLCULOS FUTUROS --- */
         async function actualizarTodo() {
             if (!cuentaActivaId) return;
             const cuenta = await dbGet('cuentas', cuentaActivaId);
@@ -535,7 +663,9 @@
             const hoy = new Date(); const labels = []; const data = []; let acumulado = parseFloat(cuenta.base) || 0;
             document.getElementById('dash-saldo-actual').innerText = acumulado.toFixed(2) + ' €';
 
-            for (let i = 0; i <= 60; i++) {
+            const limiteMeses = aniosProyeccion * 12;
+
+            for (let i = 0; i <= limiteMeses; i++) {
                 let f = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
                 let mesStr = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
                 labels.push(mesStr); let varMes = 0;
@@ -560,46 +690,35 @@
             });
         }
 
-        /* --- 7. EXPORTAR / IMPORTAR BACKUPS JSON --- */
+        /* --- 8. EXPORTAR / IMPORTAR COPIAS SEGURIDAD --- */
         async function exportarDatos() {
             const cuentas = await dbGetAll('cuentas');
             const movimientos = await dbGetAll('movimientos');
             const backup = { cuentas, movimientos };
-            
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `finanzas_backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
+            a.href = url; a.download = `finanzas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
             URL.revokeObjectURL(url);
         }
 
         function importarDatos(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = async (evt) => {
                 try {
                     const data = JSON.parse(evt.target.result);
                     if (!data.cuentas || !data.movimientos) throw new Error();
-                    
                     if (confirm('¿Deseas importar los datos? Esto reemplazará las cuentas y movimientos actuales por completo.')) {
-                        await dbClear('cuentas');
-                        await dbClear('movimientos');
-                        
+                        await dbClear('cuentas'); await dbClear('movimientos');
                         for (let c of data.cuentas) { await dbPut('cuentas', c); }
                         for (let m of data.movimientos) { await dbPut('movimientos', m); }
-                        
-                        alert('¡Base de datos migrada con éxito! La página se recargará para aplicar los cambios.');
+                        alert('¡Base de datos migrada con éxito! La página se recargará.');
                         window.location.reload();
                     }
-                } catch (err) {
-                    mostrarMensaje('Error', 'El archivo no tiene un formato válido.');
-                }
+                } catch (err) { mostrarMensaje('Error', 'El archivo no tiene un formato válido.'); }
             };
-            reader.readAsText(file);
-            e.target.value = '';
+            reader.readAsText(file); e.target.value = '';
         }
     </script>
 </body>

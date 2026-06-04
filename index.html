@@ -122,6 +122,15 @@
                             <option value="17">17 Años</option> <option value="18">18 Años</option> <option value="19">19 Años</option> <option value="20">20 Años</option>
                         </select>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <label for="interes-compuesto-input" class="text-xs font-medium text-slate-500 whitespace-nowrap">Interés compuesto:</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="interes-compuesto-input" min="0" max="100" step="0.01" value="0" placeholder="0.00"
+                                oninput="cambiarInteresCompuesto(this.value)"
+                                class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-medium w-24 pr-7">
+                            <span class="absolute right-2.5 text-slate-400 text-sm font-medium pointer-events-none">%</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 gap-4">
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
@@ -138,6 +147,26 @@
                         <p class="text-sm text-slate-500">Saldo proyectado considerando movimientos recurrentes y límites.</p>
                     </div>
                     <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
+                </div>
+
+                <!-- Gráfico de tarta: ingresos vs gastos totales -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Proporción Ingresos / Gastos</h3>
+                        <p class="text-sm text-slate-500">Peso relativo de cada flujo financiero en el horizonte proyectado.</p>
+                    </div>
+                    <div class="relative h-64 w-full flex items-center justify-center">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico de barras: comparativa mensual primer año -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Detalle Mensual — Primer Año</h3>
+                        <p class="text-sm text-slate-500">Comparativa mes a mes de entradas y salidas durante los próximos 12 meses.</p>
+                    </div>
+                    <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
                 </div>
             </section>
 
@@ -335,7 +364,7 @@
         });
 
         /* --- 2. GESTIÓN BASE DE DATOS LOCAL (INDEXEDDB) --- */
-        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let aniosProyeccion = 5;
+        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0;
 
         function initDB() {
             return new Promise((resolve) => {
@@ -449,6 +478,11 @@
         function cambiarAniosProyeccion(anios) {
             aniosProyeccion = parseInt(anios);
             document.getElementById('titulo-grafica-proyeccion').innerText = `Proyección a ${aniosProyeccion} ${aniosProyeccion === 1 ? 'año' : 'años'}`;
+            actualizarTodo();
+        }
+
+        function cambiarInteresCompuesto(valor) {
+            interesCompuestoMensual = parseFloat(valor) || 0;
             actualizarTodo();
         }
 
@@ -701,45 +735,71 @@
 			let acumulado = parseFloat(cuenta.base) || 0;
 			let saldoMesActual = null;
 
+			// Datos para gráficos adicionales
+			let totalIngresos = 0;
+			let totalGastos = 0;
+			const barLabels = [];
+			const barIngresos = [];
+			const barGastos = [];
+
 			// El límite total de meses según el horizonte seleccionado
 			const limiteMeses = aniosProyeccion * 12;
+			const tasaMensual = interesCompuestoMensual / 100;
 
 			for (let i = 0; i <= limiteMeses; i++) {
 				// Generar fecha del mes que estamos calculando
 				let fechaActual = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
 				let mesStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`;
 				
-				let variacionMes = 0;
+				let ingresosMes = 0;
+				let gastosMes = 0;
 
 				// 2. Evaluar cada movimiento para este mes
 				movs.forEach(m => {
-					let inicioMov = m.fechaInicio; // formato "YYYY-MM"
+					let inicioMov = m.fechaInicio;
 					let esValido = false;
 
 					if (!m.recurrente) {
-						// Movimiento único: solo aplica si coincide el mes de inicio
 						if (mesStr === inicioMov) esValido = true;
 					} else {
-						// Recurrente: debe haber comenzado (mesStr >= inicio)
 						if (mesStr >= inicioMov) {
 							if (m.tieneLimite && m.fechaFin) {
-								// Con fecha límite: solo aplica hasta fechaFin inclusive
 								if (mesStr <= m.fechaFin) esValido = true;
 							} else {
-								// Sin límite: perpetuo
 								esValido = true;
 							}
 						}
 					}
 
 					if (esValido) {
-						variacionMes += (m.tipo === 'ingreso' ? m.cantidad : -m.cantidad);
+						if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
+						else gastosMes += m.cantidad;
 					}
 				});
 
-				acumulado += variacionMes;
+				const variacionMes = ingresosMes - gastosMes;
+
+				// Aplicar interés compuesto: el interés se calcula sobre el saldo acumulado antes de sumar la variación del mes
+				if (tasaMensual > 0) {
+					acumulado = acumulado * (1 + tasaMensual) + variacionMes;
+				} else {
+					acumulado += variacionMes;
+				}
+
 				labels.push(mesStr);
 				data.push(acumulado);
+
+				// Acumular totales para gráfico de tarta
+				totalIngresos += ingresosMes;
+				totalGastos += gastosMes;
+
+				// Acumular datos para gráfico de barras (solo primer año = 12 meses)
+				if (i > 0 && i <= 12) {
+					const nombresMeses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+					barLabels.push(nombresMeses[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+					barIngresos.push(ingresosMes);
+					barGastos.push(gastosMes);
+				}
 
 				// Guardar el saldo al cierre del mes actual
 				if (mesStr === mesHoyStr) saldoMesActual = acumulado;
@@ -749,6 +809,8 @@
 			const saldoMostrar = saldoMesActual !== null ? saldoMesActual : data[0];
 			document.getElementById('dash-saldo-actual').innerText = saldoMostrar.toFixed(2) + ' €';
 			renderChart(labels, data);
+			renderPieChart(totalIngresos, totalGastos);
+			renderBarChart(barLabels, barIngresos, barGastos);
 		}
 
         function renderChart(labels, data) {
@@ -757,6 +819,66 @@
             currentChart = new Chart(ctx, {
                 type: 'line', data: { labels: labels, datasets: [{ label: 'Saldo Proyectado (€)', data: data, borderColor: '#4f46e5', backgroundColor: gradient, borderWidth: 3, pointRadius: 0, fill: true, tension: 0.3 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }, y: { grid: { color: '#f1f5f9' } } }, interaction: { mode: 'index', intersect: false } }
+            });
+        }
+
+        function renderPieChart(totalIngresos, totalGastos) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if (currentPieChart) currentPieChart.destroy();
+            const sinDatos = totalIngresos === 0 && totalGastos === 0;
+            currentPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: sinDatos ? ['Sin datos'] : ['Ingresos Totales', 'Gastos Totales'],
+                    datasets: [{
+                        data: sinDatos ? [1] : [totalIngresos, totalGastos],
+                        backgroundColor: sinDatos ? ['#e2e8f0'] : ['#22c55e', '#f43f5e'],
+                        borderColor: sinDatos ? ['#cbd5e1'] : ['#16a34a', '#e11d48'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 16, font: { size: 13 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    if (sinDatos) return ' Sin movimientos';
+                                    const total = totalIngresos + totalGastos;
+                                    const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                                    return ` ${ctx.raw.toFixed(2)} € (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBarChart(labels, ingresos, gastos) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            if (currentBarChart) currentBarChart.destroy();
+            currentBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Ingresos (€)', data: ingresos, backgroundColor: 'rgba(34, 197, 94, 0.75)', borderColor: '#16a34a', borderWidth: 1.5, borderRadius: 4 },
+                        { label: 'Gastos (€)', data: gastos, backgroundColor: 'rgba(244, 63, 94, 0.75)', borderColor: '#e11d48', borderWidth: 1.5, borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
             });
         }
 

@@ -85,28 +85,34 @@
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
         
         <!-- CABECERA GLOBAL -->
-        <header class="bg-white shadow-sm z-10 p-4 flex items-center justify-between gap-4 border-b border-slate-100">
-            <div class="flex items-center gap-2">
-                <button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none text-indigo-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <h1 id="header-title" class="text-lg font-bold text-slate-800 tracking-tight hidden sm:block">Proyecciones</h1>
-            </div>
-            
-            <div class="flex-1 max-w-xs sm:w-64">
-                <select id="global-cuenta-select" onchange="cambiarCuentaActiva(this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-semibold shadow-sm text-ellipsis overflow-hidden"></select>
-            </div>
-        </header>
+		<header class="bg-white shadow-md z-10 p-4 flex items-center justify-between gap-4 border-b border-indigo-100">
+			<div class="flex items-center gap-2">
+				<button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none text-indigo-700">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+				</button>
+				<h1 id="header-title" class="text-lg font-bold text-indigo-900 tracking-tight hidden sm:block">Proyecciones</h1>
+			</div>
+			
+			<!-- Selector resaltado como protagonista -->
+			<div class="flex-1 max-w-xs sm:w-64">
+				<div class="relative">
+					<select id="global-cuenta-select" onchange="cambiarCuentaActiva(this.value)" 
+						class="w-full bg-indigo-50 border-2 border-indigo-200 text-indigo-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 font-bold shadow-sm transition-all appearance-none cursor-pointer">
+					</select>
+					<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-indigo-600">
+						<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path></svg>
+					</div>
+				</div>
+			</div>
+		</header>
 
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
             
             <!-- VISTA: PROYECCIONES (DASHBOARD) -->
             <section id="view-dashboard" class="view-section active max-w-4xl mx-auto space-y-6">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-sm font-medium text-slate-500">Parámetro de Simulación</h3>
-                    </div>
-                    <div class="flex items-center gap-2">
+                <!-- Selector de cuenta específico para Proyecciones -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
+                     <div class="flex items-center gap-2">
                         <label class="text-xs font-medium text-slate-500 whitespace-nowrap">Horizonte:</label>
                         <select id="proyeccion-anios-select" onchange="cambiarAniosProyeccion(this.value)" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-medium w-32">
                             <option value="1">1 Año</option> <option value="2">2 Años</option> <option value="3">3 Años</option> <option value="4">4 Años</option>
@@ -129,7 +135,7 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4">
                         <h3 id="titulo-grafica-proyeccion" class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
-                        <p class="text-sm text-slate-500">Evolución estimada basada en base y movimientos recurrentes.</p>
+                        <p class="text-sm text-slate-500">Saldo proyectado considerando movimientos recurrentes y límites.</p>
                     </div>
                     <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
                 </div>
@@ -208,10 +214,6 @@
                         <h3 class="text-lg font-bold text-slate-800">Cierre e Historial Real</h3>
                         <p class="text-xs text-slate-500">Flujo consolidado calculado exclusivamente para la cuenta activa.</p>
                     </div>
-                    <!-- Selector local de cuenta para Historial -->
-                    <div class="w-full sm:w-64">
-                        <select id="historial-cuenta-select" onchange="cambiarCuentaActiva(this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-semibold shadow-sm"></select>
-                    </div>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                     <div class="overflow-x-auto">
@@ -238,8 +240,6 @@
                         <p class="text-xs text-slate-500">Configuración operativa asignada a la cuenta activa.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                        <!-- Selector local de cuenta para Gestión de Movimientos -->
-                        <select id="activos-cuenta-select" onchange="cambiarCuentaActiva(this.value)" class="w-full sm:w-48 bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-semibold shadow-sm"></select>
                         <button onclick="limpiarFormularioMovimiento(); navigateTo('movimiento')" class="w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-700 text-xs px-3 py-2.5 rounded-lg font-medium transition-colors whitespace-nowrap">+ Añadir Regla</button>
                     </div>
                 </div>
@@ -414,12 +414,12 @@
 
         async function cargarSelectorGlobalCuentas() {
             const cuentas = await dbGetAll('cuentas');
-            // Mapeamos los 4 selectores que conviven en el DOM
             const selects = [
                 document.getElementById('global-cuenta-select'), 
                 document.getElementById('mov-cuenta-select'),
                 document.getElementById('historial-cuenta-select'),
-                document.getElementById('activos-cuenta-select')
+                document.getElementById('activos-cuenta-select'),
+                document.getElementById('dash-cuenta-select')
             ];
             selects.forEach(sel => {
                 if (!sel) return;
@@ -434,15 +434,12 @@
 
         function cambiarCuentaActiva(id) {
             cuentaActivaId = parseInt(id);
-            
-            // Sincronización completa de los 4 elementos selectores
-            const selects = ['global-cuenta-select', 'mov-cuenta-select', 'historial-cuenta-select', 'activos-cuenta-select'];
+            const selects = ['global-cuenta-select', 'mov-cuenta-select', 'historial-cuenta-select', 'activos-cuenta-select', 'dash-cuenta-select'];
             selects.forEach(sid => {
                 const el = document.getElementById(sid);
                 if (el) el.value = id;
             });
             
-            // Renderizado bajo demanda de la vista en primer plano
             actualizarTodo();
             if(document.getElementById('view-historial-meses').classList.contains('active')) renderHistorialMeses();
             if(document.getElementById('view-movimientos-activos').classList.contains('active')) renderMovimientosActivos();
@@ -688,7 +685,7 @@
             }
         }
 
-        /* --- 7. MOTOR GRÁFICA Y CÁLCULOS FUTUROS --- */
+        /* --- 7. MOTOR GRÁFICA Y CÁLCULOS FUTUROS (CORREGIDO) --- */
         async function actualizarTodo() {
             if (!cuentaActivaId) return;
             const cuenta = await dbGet('cuentas', cuentaActivaId);
@@ -696,23 +693,50 @@
             const todos = await dbGetAll('movimientos');
             const movs = todos.filter(m => m.cuentaId === cuentaActivaId);
 
-            const hoy = new Date(); const labels = []; const data = []; let acumulado = parseFloat(cuenta.base) || 0;
+            const hoy = new Date(); const labels = []; const data = []; 
+            let acumulado = parseFloat(cuenta.base) || 0;
+            
+            // Pintamos el valor actual en la tarjeta superior del dashboard
             document.getElementById('dash-saldo-actual').innerText = acumulado.toFixed(2) + ' €';
 
             const limiteMeses = aniosProyeccion * 12;
 
+            // Recorremos el horizonte temporal mes a mes hacia el futuro
             for (let i = 0; i <= limiteMeses; i++) {
                 let f = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
                 let mesStr = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
-                labels.push(mesStr); let varMes = 0;
+                labels.push(mesStr); 
+                
+                let varMes = 0;
 
                 movs.forEach(m => {
                     let aplicar = false;
-                    if (!m.recurrente) { if (m.fechaInicio === mesStr) aplicar = true; }
-                    else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) aplicar = true; } }
-                    if (aplicar) varMes += m.tipo === 'ingreso' ? m.cantidad : -m.cantidad;
+                    
+                    // Movimientos únicos
+                    if (!m.recurrente) { 
+                        if (m.fechaInicio === mesStr) aplicar = true; 
+                    }
+                    // Movimientos recurrentes (evaluando vigencias y fechas límites)
+                    else { 
+                        if (mesStr >= m.fechaInicio) { 
+                            if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) {
+                                aplicar = true; 
+                            }
+                        } 
+                    }
+                    
+                    // Lógica: Si aplica, sumamos si es ingreso, restamos si es gasto
+                    if (aplicar) {
+                        if (m.tipo === 'ingreso') {
+                            varMes += m.cantidad;
+                        } else if (m.tipo === 'gasto') {
+                            varMes -= m.cantidad; 
+                        }
+                    }
                 });
-                acumulado += varMes; data.push(acumulado);
+                
+                acumulado += varMes; 
+                data.push(acumulado);
             }
             renderChart(labels, data);
         }
@@ -721,7 +745,7 @@
             const ctx = document.getElementById('projectionChart').getContext('2d'); if (currentChart) currentChart.destroy();
             let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)'); gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
             currentChart = new Chart(ctx, {
-                type: 'line', data: { labels: labels, datasets: [{ label: 'Saldo (€)', data: data, borderColor: '#4f46e5', backgroundColor: gradient, borderWidth: 3, pointRadius: 0, fill: true, tension: 0.3 }] },
+                type: 'line', data: { labels: labels, datasets: [{ label: 'Saldo Proyectado (€)', data: data, borderColor: '#4f46e5', backgroundColor: gradient, borderWidth: 3, pointRadius: 0, fill: true, tension: 0.3 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }, y: { grid: { color: '#f1f5f9' } } }, interaction: { mode: 'index', intersect: false } }
             });
         }

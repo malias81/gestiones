@@ -40,6 +40,40 @@
         #help-modal { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:200; align-items:center; justify-content:center; padding:1rem; }
         #help-modal.open { display:flex; }
         #help-modal .help-card { background:#fff; border-radius:1rem; padding:1.5rem; max-width:380px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.18); }
+        /* MODO NOCHE */
+        body.dark { background:#0f172a; color:#e2e8f0; }
+        body.dark header { background:#1e293b; border-color:#334155; }
+        body.dark main { background:#0f172a; }
+        body.dark .bg-white { background:#1e293b !important; }
+        body.dark .bg-slate-50 { background:#0f172a !important; }
+        body.dark .bg-slate-100 { background:#334155 !important; }
+        body.dark .border-slate-100 { border-color:#334155 !important; }
+        body.dark .border-slate-200 { border-color:#475569 !important; }
+        body.dark .text-slate-800, body.dark .text-slate-900 { color:#f1f5f9 !important; }
+        body.dark .text-slate-700 { color:#cbd5e1 !important; }
+        body.dark .text-slate-600 { color:#94a3b8 !important; }
+        body.dark .text-slate-500 { color:#64748b !important; }
+        body.dark .text-slate-400 { color:#475569 !important; }
+        body.dark .bg-slate-50.border { background:#1e293b !important; }
+        body.dark input, body.dark select, body.dark textarea { background:#334155 !important; border-color:#475569 !important; color:#f1f5f9 !important; }
+        body.dark .gauge-bg { stroke: #334155; }
+        body.dark .help-btn { background:#312e81; color:#a5b4fc; }
+        body.dark .help-btn:hover { background:#3730a3; }
+        body.dark #help-modal .help-card { background:#1e293b; }
+        body.dark #help-modal .help-card h3 { color:#f1f5f9; }
+        body.dark #help-modal .help-card p { color:#94a3b8; }
+        body.dark .divide-y > tr { border-color:#334155; }
+        body.dark table thead tr { background:#0f172a !important; }
+        body.dark .hover\:bg-slate-50:hover { background:#334155 !important; }
+        body.dark .alerta-deficit { background:#450a0a; border-color:#7f1d1d; }
+        body.dark .alerta-deficit p.text-red-800 { color:#fca5a5 !important; }
+        body.dark .alerta-deficit p.text-red-600 { color:#f87171 !important; }
+        body.dark #sidebar { background:#1e1b4b; }
+        body.dark #sidebar .border-indigo-600 { border-color:#312e81; }
+        body.dark #sidebar .bg-indigo-800 { background:#12104a !important; }
+        /* Toggle noche animación */
+        #dark-toggle-track { transition: background 0.3s; }
+        #dark-toggle-thumb { transition: transform 0.3s; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
@@ -82,6 +116,17 @@
         </nav>
 
         <div class="p-4 border-t border-indigo-600 space-y-1 bg-indigo-800">
+            <!-- Modo noche -->
+            <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
+                <div class="flex items-center">
+                    <svg id="dark-icon" class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <span id="dark-label">Modo Noche</span>
+                </div>
+                <div class="relative w-10 h-6 flex-shrink-0">
+                    <div id="dark-toggle-track" class="w-full h-full rounded-full bg-indigo-900"></div>
+                    <div id="dark-toggle-thumb" class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow"></div>
+                </div>
+            </button>
             <button onclick="exportarDatos()" class="w-full flex items-center p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
                 <svg class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 Exportar Datos
@@ -1371,6 +1416,37 @@
             };
             reader.readAsText(file); e.target.value = '';
         }
+        /* --- MODO NOCHE --- */
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDark ? '1' : '0');
+            actualizarIconoDark(isDark);
+        }
+        function actualizarIconoDark(isDark) {
+            const thumb = document.getElementById('dark-toggle-thumb');
+            const track = document.getElementById('dark-toggle-track');
+            const label = document.getElementById('dark-label');
+            const icon = document.getElementById('dark-icon');
+            if (isDark) {
+                thumb.style.transform = 'translateX(16px)';
+                track.style.background = '#6366f1';
+                label.textContent = 'Modo Día';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>';
+            } else {
+                thumb.style.transform = 'translateX(0)';
+                track.style.background = '#312e81';
+                label.textContent = 'Modo Noche';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+            }
+        }
+        // Restaurar preferencia al cargar
+        (function() {
+            if (localStorage.getItem('darkMode') === '1') {
+                document.body.classList.add('dark');
+                // defer until DOM ready
+                document.addEventListener('DOMContentLoaded', () => actualizarIconoDark(true));
+            }
+        })();
     </script>
 </body>
 </html>

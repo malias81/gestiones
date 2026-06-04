@@ -30,6 +30,16 @@
         .gauge-fill { fill: none; stroke-width: 18; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s; }
         .heatmap-cell { border-radius: 3px; transition: opacity 0.2s; cursor: default; }
         .heatmap-cell:hover { opacity: 0.75; }
+        /* Tooltip de ayuda */
+        .help-btn { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#e0e7ff; color:#4f46e5; font-size:11px; font-weight:700; cursor:pointer; border:none; flex-shrink:0; transition:background 0.2s; }
+        .help-btn:hover { background:#c7d2fe; }
+        /* Alerta de déficit */
+        .alerta-deficit { display:none; animation: fadeIn 0.4s ease; }
+        .alerta-deficit.visible { display:flex; }
+        /* Modal de ayuda */
+        #help-modal { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+        #help-modal.open { display:flex; }
+        #help-modal .help-card { background:#fff; border-radius:1rem; padding:1.5rem; max-width:380px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.18); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
@@ -161,7 +171,10 @@
                     </div>
                     <!-- Tasa de ahorro -->
                     <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
-                        <p class="text-xs font-medium text-slate-500 mb-1">Tasa de ahorro mensual</p>
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-xs font-medium text-slate-500">Tasa de ahorro mensual</p>
+                            <button class="help-btn" onclick="abrirHelp('Tasa de Ahorro','Mide tu eficiencia financiera mensual. Un porcentaje alto indica que vives por debajo de tus posibilidades; un porcentaje bajo señala riesgo de insolvencia ante imprevistos. Se calcula como: (Ingresos − Gastos) / Ingresos × 100.')">?</button>
+                        </div>
                         <div class="gauge-wrap mt-1">
                             <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
                                 <path class="gauge-bg" d="M20,100 A80,80 0 0,1 180,100"/>
@@ -174,20 +187,55 @@
                         <p id="dash-ahorro-label" class="text-xs text-center text-slate-400 -mt-1">Ingresos vs gastos este mes</p>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="mb-4">
-                        <h3 id="titulo-grafica-proyeccion" class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
-                        <p class="text-sm text-slate-500">Saldo proyectado considerando movimientos recurrentes y límites.</p>
+
+                <!-- Alerta de déficit -->
+                <div id="alerta-deficit" class="alerta-deficit items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-red-800">Alerta de presupuesto</p>
+                        <p id="alerta-deficit-texto" class="text-xs text-red-600 mt-0.5">Tus gastos fijos superan el 80% de tus ingresos.</p>
+                    </div>
+                </div>
+
+                <!-- Fondo de Emergencia -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-lg font-semibold text-slate-800">Fondo de Emergencia</h3>
+                        <button class="help-btn" onclick="abrirHelp('Fondo de Emergencia','Indica cuántos meses de gastos tienes cubiertos con tu saldo actual. El objetivo estándar es tener entre 3 y 6 meses de gastos disponibles en todo momento para afrontar imprevistos sin deuda.')">?</button>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <div class="flex justify-between text-xs text-slate-500 mb-1">
+                                <span id="fondo-texto">0 de 6 meses cubiertos</span>
+                                <span id="fondo-pct">0%</span>
+                            </div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="fondo-barra" class="h-full rounded-full transition-all duration-700" style="width:0%;background:#22c55e"></div>
+                            </div>
+                        </div>
+                        <div id="fondo-semaforo" class="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0">🔴</div>
+                    </div>
+                    <p id="fondo-label" class="text-xs text-slate-400 mt-2">Reserva insuficiente — objetivo: 6 meses de gastos</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h3 id="titulo-grafica-proyeccion" class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
+                        <button class="help-btn" onclick="abrirHelp('Proyecciones','Visualiza tu salud financiera a largo plazo. Ayuda a entender el efecto del interés compuesto en tus ahorros y si tu trayectoria actual te acerca o aleja de tus objetivos financieros.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Saldo proyectado considerando movimientos recurrentes y límites.</p>
                     <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
                 </div>
 
                 <!-- Gráfico de tarta: ingresos vs gastos totales -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="mb-4">
+                    <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Proporción Ingresos / Gastos</h3>
-                        <p class="text-sm text-slate-500">Peso relativo de cada flujo financiero en el horizonte proyectado.</p>
+                        <button class="help-btn" onclick="abrirHelp('Proporción Ingresos/Gastos','Muestra el peso relativo de tus entradas frente a tus salidas. Ideal para identificar desequilibrios estructurales en tu presupuesto.')">?</button>
                     </div>
+                    <p class="text-sm text-slate-500">Peso relativo de cada flujo financiero en el horizonte proyectado.</p>
                     <div class="relative h-64 w-full flex items-center justify-center">
                         <canvas id="pieChart"></canvas>
                     </div>
@@ -195,30 +243,31 @@
 
                 <!-- Gráfico de barras: comparativa mensual primer año -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="mb-4">
+                    <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Detalle Mensual — Primer Año</h3>
-                        <p class="text-sm text-slate-500">Comparativa mes a mes de entradas y salidas durante los próximos 12 meses.</p>
+                        <button class="help-btn" onclick="abrirHelp('Detalle Mensual','Comparativa mes a mes. Útil para detectar estacionalidad (meses con más gastos o ingresos) y ajustar previsiones para meses difíciles.')">?</button>
                     </div>
+                    <p class="text-sm text-slate-500">Comparativa mes a mes de entradas y salidas durante los próximos 12 meses.</p>
                     <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
                 </div>
 
                 <!-- Gráfico de cascada (waterfall) -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="mb-2 flex items-start justify-between flex-wrap gap-2">
-                        <div>
-                            <h3 class="text-lg font-semibold text-slate-800">Cascada del Mes Actual</h3>
-                            <p class="text-sm text-slate-500">Cada bloque muestra cómo cada movimiento suma o resta al saldo.</p>
-                        </div>
+                    <div class="mb-2 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Cascada del Mes Actual</h3>
+                        <button class="help-btn" onclick="abrirHelp('Cascada (Waterfall)','Desglosa cómo se transforma tu saldo inicial en el saldo final. Permite identificar qué movimiento específico (gasto o ingreso) impactó más tu cuenta este mes.')">?</button>
                     </div>
+                    <p class="text-sm text-slate-500">Cada bloque muestra cómo cada movimiento suma o resta al saldo.</p>
                     <div class="relative h-72 w-full"><canvas id="waterfallChart"></canvas></div>
                 </div>
 
                 <!-- Heatmap anual -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="mb-4">
+                    <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Heatmap de Flujo Neto</h3>
-                        <p class="text-sm text-slate-500">Verde = superávit · Rojo = déficit · Intensidad = magnitud</p>
+                        <button class="help-btn" onclick="abrirHelp('Heatmap de Flujo Neto','Mapa de calor del superávit/déficit. Facilita la detección de patrones cíclicos a varios años; ayuda a identificar en qué meses del año tu economía suele sufrir más.')">?</button>
                     </div>
+                    <p class="text-sm text-slate-500">Verde = superávit · Rojo = déficit · Intensidad = magnitud</p>
                     <div id="heatmap-container" class="overflow-x-auto"></div>
                     <div class="flex items-center gap-2 mt-3 justify-center">
                         <span class="text-xs text-slate-400">Déficit</span>
@@ -237,10 +286,11 @@
 
                 <!-- Área apilada por categorías -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="mb-4">
+                    <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Gastos por Categoría — Primer Año</h3>
-                        <p class="text-sm text-slate-500">Evolución mes a mes del peso de cada categoría de gasto.</p>
+                        <button class="help-btn" onclick="abrirHelp('Gastos por Categoría (Stacked Area)','Evolución del peso de cada categoría. Es vital para notar si un gasto pequeño (ej. suscripciones) está creciendo desproporcionadamente en relación con otros gastos.')">?</button>
                     </div>
+                    <p class="text-sm text-slate-500">Evolución mes a mes del peso de cada categoría de gasto.</p>
                     <div class="relative h-72 w-full"><canvas id="stackedAreaChart"></canvas></div>
                 </div>
             </section>
@@ -291,6 +341,15 @@
                                     <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform toggle-dot"></div>
                                 </div>
                                 <div class="ml-3 text-sm font-medium text-slate-700">Es un movimiento recurrente (mensual)</div>
+                            </label>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100">
+                            <label class="flex items-center cursor-pointer gap-3">
+                                <input type="checkbox" id="mov-inversion" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <span class="text-sm font-medium text-slate-700">Es aportación a inversión</span>
+                                    <p class="text-xs text-slate-400">Diferencia este gasto de los demás (p.ej. fondos, plan de pensiones, broker…)</p>
+                                </div>
                             </label>
                         </div>
                         <div id="container-fecha-limite" class="hidden bg-slate-50 p-4 rounded-lg border border-slate-200 mt-3">
@@ -380,6 +439,19 @@
                 <div id="lista-cuentas" class="space-y-3"></div>
             </section>
         </main>
+    </div>
+
+    <!-- MODAL AYUDA GRÁFICOS -->
+    <div id="help-modal" onclick="cerrarHelpModal(event)">
+        <div class="help-card">
+            <div class="flex items-start justify-between mb-3">
+                <h3 id="help-modal-title" class="text-base font-bold text-slate-900 pr-4"></h3>
+                <button onclick="cerrarHelpModal()" class="text-slate-400 hover:text-slate-600 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <p id="help-modal-body" class="text-sm text-slate-600 leading-relaxed"></p>
+        </div>
     </div>
 
     <!-- MODALES -->
@@ -596,6 +668,7 @@
                 cantidad: parseFloat(document.getElementById('mov-cantidad').value),
                 fechaInicio: document.getElementById('mov-fecha-inicio').value,
                 recurrente: document.getElementById('mov-recurrente').checked,
+                esInversion: document.getElementById('mov-inversion').checked,
                 tieneLimite: document.getElementById('mov-tiene-limite').checked,
                 fechaFin: document.getElementById('mov-fecha-fin').value || null
             };
@@ -708,6 +781,7 @@
                     </td>
                     <td class="p-4">
                         <span class="px-2 py-1 text-xs font-medium rounded-full ${m.tipo === 'ingreso' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}">${m.tipo.toUpperCase()}</span>
+                        ${m.esInversion ? '<span class="ml-1 px-2 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">INVERSIÓN</span>' : ''}
                     </td>
                     <td class="p-4 font-bold ${m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}">${m.cantidad.toFixed(2)} €</td>
                     <td class="p-4 text-xs text-slate-500">${vigencia}</td>
@@ -730,6 +804,7 @@
             document.getElementById('mov-cantidad').value = m.cantidad;
             document.getElementById('mov-fecha-inicio').value = m.fechaInicio;
             document.getElementById('mov-recurrente').checked = m.recurrente;
+            document.getElementById('mov-inversion').checked = m.esInversion || false;
             
             toggleFechaLimite();
             document.getElementById('mov-tiene-limite').checked = m.tieneLimite;
@@ -924,6 +999,20 @@
 			const runway = gastoMedioMensual > 0 ? Math.floor(saldoMostrar / gastoMedioMensual) : null;
 			renderRunway(runway);
 
+			// KPI: Fondo de emergencia
+			renderFondoEmergencia(saldoMostrar, gastoMedioMensual);
+
+			// Alerta de déficit (si gastos mes actual > 80% de ingresos mes actual)
+			const alertaEl = document.getElementById('alerta-deficit');
+			const alertaTexto = document.getElementById('alerta-deficit-texto');
+			if (ingMesActual > 0 && gastMesActual / ingMesActual > 0.8) {
+				const pctGastos = Math.round((gastMesActual / ingMesActual) * 100);
+				alertaTexto.textContent = `Tus gastos este mes representan el ${pctGastos}% de tus ingresos. Considera revisar tu presupuesto.`;
+				alertaEl.classList.add('visible');
+			} else {
+				alertaEl.classList.remove('visible');
+			}
+
 			// Gráficas
 			renderChart(labels, data);
 			renderPieChart(totalIngresos, totalGastos);
@@ -1016,6 +1105,46 @@
             text.style.fill = color;
             if (ingresos === 0) label.textContent = 'Sin ingresos registrados';
             else label.textContent = `Ahorro: ${(ingresos - gastos).toFixed(0)} € de ${ingresos.toFixed(0)} €`;
+        }
+
+        function abrirHelp(titulo, texto) {
+            document.getElementById('help-modal-title').textContent = titulo;
+            document.getElementById('help-modal-body').textContent = texto;
+            document.getElementById('help-modal').classList.add('open');
+        }
+        function cerrarHelpModal(e) {
+            if (!e || e.target === document.getElementById('help-modal')) {
+                document.getElementById('help-modal').classList.remove('open');
+            }
+        }
+
+        function renderFondoEmergencia(saldo, gastoMedioMensual) {
+            const objetivo = 6; // meses
+            const mesesCubiertos = gastoMedioMensual > 0 ? saldo / gastoMedioMensual : null;
+            const el_texto = document.getElementById('fondo-texto');
+            const el_pct = document.getElementById('fondo-pct');
+            const el_barra = document.getElementById('fondo-barra');
+            const el_semaforo = document.getElementById('fondo-semaforo');
+            const el_label = document.getElementById('fondo-label');
+
+            if (mesesCubiertos === null || mesesCubiertos < 0) {
+                el_texto.textContent = 'Sin gastos proyectados';
+                el_pct.textContent = '—';
+                el_barra.style.width = '0%';
+                el_semaforo.textContent = '⚪';
+                el_label.textContent = 'Registra gastos para calcular tu fondo de emergencia';
+                return;
+            }
+            const pct = Math.min(100, (mesesCubiertos / objetivo) * 100);
+            const mesesRedondeado = Math.floor(mesesCubiertos * 10) / 10;
+            el_texto.textContent = `${mesesRedondeado} de ${objetivo} meses cubiertos`;
+            el_pct.textContent = Math.round(pct) + '%';
+            el_barra.style.width = pct + '%';
+            const color = pct >= 100 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+            el_barra.style.background = color;
+            if (pct >= 100) { el_semaforo.textContent = '🟢'; el_label.textContent = '✓ Fondo completo — objetivo de 6 meses alcanzado'; }
+            else if (pct >= 50) { el_semaforo.textContent = '🟡'; el_label.textContent = `A mitad de camino — faltan ${(objetivo - mesesCubiertos).toFixed(1)} meses`; }
+            else { el_semaforo.textContent = '🔴'; el_label.textContent = `Reserva insuficiente — faltan ${(objetivo - Math.max(0,mesesCubiertos)).toFixed(1)} meses para el objetivo`; }
         }
 
         function renderRunway(meses) {

@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Finanzas">
     
     <link id="manifest-link" rel="manifest" href="">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRmNDZlNSIvPjx0ZXh0IHg9IjUwIiB5PSI2NCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RjwvdGV4dD48L3N2Zz4=">
+    <link class="apple-touch-icon" rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRmNDZlNSIvPjx0ZXh0IHg9IjUwIiB5PSI2NCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RjwvdGV4dD48L3N2Zz4=">
 
     <!-- Tailwind CSS y Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,16 +30,14 @@
         .gauge-fill { fill: none; stroke-width: 18; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s; }
         .heatmap-cell { border-radius: 3px; transition: opacity 0.2s; cursor: default; }
         .heatmap-cell:hover { opacity: 0.75; }
-        /* Tooltip de ayuda */
         .help-btn { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#e0e7ff; color:#4f46e5; font-size:11px; font-weight:700; cursor:pointer; border:none; flex-shrink:0; transition:background 0.2s; }
         .help-btn:hover { background:#c7d2fe; }
-        /* Alerta de déficit */
         .alerta-deficit { display:none; animation: fadeIn 0.4s ease; }
         .alerta-deficit.visible { display:flex; }
-        /* Modal de ayuda */
         #help-modal { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:200; align-items:center; justify-content:center; padding:1rem; }
         #help-modal.open { display:flex; }
         #help-modal .help-card { background:#fff; border-radius:1rem; padding:1.5rem; max-width:380px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.18); }
+        
         /* MODO NOCHE */
         body.dark { background:#0f172a; color:#e2e8f0; }
         body.dark header { background:#1e293b; border-color:#334155; }
@@ -71,7 +69,6 @@
         body.dark #sidebar { background:#1e1b4b; }
         body.dark #sidebar .border-indigo-600 { border-color:#312e81; }
         body.dark #sidebar .bg-indigo-800 { background:#12104a !important; }
-        /* Toggle noche animación */
         #dark-toggle-track { transition: background 0.3s; }
         #dark-toggle-thumb { transition: transform 0.3s; }
     </style>
@@ -96,6 +93,10 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Nuevo Movimiento
             </button>
+            <button onclick="navigateTo('suscripciones')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Suscripciones
+            </button>
             <button onclick="navigateTo('historial-meses')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 Historial por Meses
@@ -116,7 +117,6 @@
         </nav>
 
         <div class="p-4 border-t border-indigo-600 space-y-1 bg-indigo-800">
-            <!-- Modo noche -->
             <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
                 <div class="flex items-center">
                     <svg id="dark-icon" class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -145,32 +145,30 @@
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
         
         <!-- CABECERA GLOBAL -->
-		<header class="bg-white shadow-md z-10 p-4 flex items-center justify-between gap-4 border-b border-indigo-100">
-			<div class="flex items-center gap-2">
-				<button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none text-indigo-700">
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-				</button>
-				<h1 id="header-title" class="text-lg font-bold text-indigo-900 tracking-tight hidden sm:block">Proyecciones</h1>
-			</div>
-			
-			<!-- Selector resaltado como protagonista -->
-			<div class="flex-1 max-w-xs sm:w-64">
-				<div class="relative">
-					<select id="global-cuenta-select" onchange="cambiarCuentaActiva(this.value)" 
+        <header class="bg-white shadow-md z-10 p-4 flex items-center justify-between gap-4 border-b border-indigo-100">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none text-indigo-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h1 id="header-title" class="text-lg font-bold text-indigo-900 tracking-tight hidden sm:block">Proyecciones</h1>
+            </div>
+            
+            <div class="flex-1 max-w-xs sm:w-64">
+                <div class="relative">
+                    <select id="global-cuenta-select" onchange="cambiarCuentaActiva(this.value)" 
 						class="w-full bg-indigo-50 border-2 border-indigo-200 text-indigo-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 font-bold shadow-sm transition-all appearance-none cursor-pointer">
-					</select>
-					<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-indigo-600">
-						<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path></svg>
-					</div>
-				</div>
-			</div>
-		</header>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-indigo-600">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </header>
 
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
             
             <!-- VISTA: PROYECCIONES (DASHBOARD) -->
             <section id="view-dashboard" class="view-section active max-w-4xl mx-auto space-y-6">
-                <!-- Selector de cuenta específico para Proyecciones -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
                      <div class="flex items-center gap-2">
                         <label class="text-xs font-medium text-slate-500 whitespace-nowrap">Horizonte:</label>
@@ -192,9 +190,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- KPI cards row -->
+                
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- Saldo proyectado -->
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden sm:col-span-1">
                         <div class="relative z-10">
                             <p class="text-indigo-100 text-xs font-medium mb-1">Saldo Proyectado (mes actual)</p>
@@ -202,7 +199,6 @@
                         </div>
                         <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     </div>
-                    <!-- Runway -->
                     <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
                         <p class="text-xs font-medium text-slate-500 mb-1">Runway financiero</p>
                         <div class="flex items-end gap-2">
@@ -214,7 +210,6 @@
                             <div id="dash-runway-barra" class="h-full rounded-full transition-all duration-700" style="width:0%"></div>
                         </div>
                     </div>
-                    <!-- Tasa de ahorro -->
                     <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
                         <div class="flex items-center gap-2 mb-1">
                             <p class="text-xs font-medium text-slate-500">Tasa de ahorro mensual</p>
@@ -233,7 +228,6 @@
                     </div>
                 </div>
 
-                <!-- Alerta de déficit -->
                 <div id="alerta-deficit" class="alerta-deficit items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
                     <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                         <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -244,7 +238,6 @@
                     </div>
                 </div>
 
-                <!-- Fondo de Emergencia -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="flex items-center gap-2 mb-3">
                         <h3 class="text-lg font-semibold text-slate-800">Fondo de Emergencia</h3>
@@ -274,7 +267,6 @@
                     <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
                 </div>
 
-                <!-- Gráfico de tarta: ingresos vs gastos totales -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Proporción Ingresos / Gastos</h3>
@@ -286,7 +278,6 @@
                     </div>
                 </div>
 
-                <!-- Gráfico de barras: comparativa mensual primer año -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Detalle Mensual — Primer Año</h3>
@@ -296,7 +287,6 @@
                     <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
                 </div>
 
-                <!-- Gráfico de cascada (waterfall) -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-2 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Cascada del Mes Actual</h3>
@@ -306,7 +296,6 @@
                     <div class="relative h-72 w-full"><canvas id="waterfallChart"></canvas></div>
                 </div>
 
-                <!-- Heatmap anual -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Heatmap de Flujo Neto</h3>
@@ -329,7 +318,6 @@
                     </div>
                 </div>
 
-                <!-- Área apilada por categorías -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="mb-4 flex items-center gap-2">
                         <h3 class="text-lg font-semibold text-slate-800">Gastos por Categoría — Primer Año</h3>
@@ -346,28 +334,41 @@
                     <h3 id="form-movimiento-title" class="text-xl font-bold mb-6 text-slate-800 border-b pb-2">Registrar Transacción</h3>
                     <form id="form-movimiento" onsubmit="guardarMovimiento(event)" class="space-y-5">
                         <input type="hidden" id="mov-id">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Cuenta de Destino</label>
-                            <select id="mov-cuenta-select" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
-                        </div>
+                        
                         <div class="flex gap-4">
                             <label class="flex-1 relative border cursor-pointer rounded-lg p-3 flex items-center space-x-3 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-indigo-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
-                                <input type="radio" name="tipo" id="tipo-ingreso" value="ingreso" required class="w-4 h-4 text-indigo-600">
+                                <input type="radio" name="tipo" id="tipo-ingreso" value="ingreso" checked required class="w-4 h-4 text-indigo-600" onchange="adaptarFormularioPorTipo()">
                                 <span class="block text-sm font-medium text-slate-900">Ingreso</span>
                             </label>
                             <label class="flex-1 relative border cursor-pointer rounded-lg p-3 flex items-center space-x-3 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-red-500 has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
-                                <input type="radio" name="tipo" id="tipo-gasto" value="gasto" class="w-4 h-4 text-red-600">
+                                <input type="radio" name="tipo" id="tipo-gasto" value="gasto" class="w-4 h-4 text-red-600" onchange="adaptarFormularioPorTipo()">
                                 <span class="block text-sm font-medium text-slate-900">Gasto</span>
                             </label>
+                            <label class="flex-1 relative border cursor-pointer rounded-lg p-3 flex items-center space-x-3 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-amber-500 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
+                                <input type="radio" name="tipo" id="tipo-transferencia" value="transferencia" class="w-4 h-4 text-amber-600" onchange="adaptarFormularioPorTipo()">
+                                <span class="block text-sm font-medium text-slate-900">Traspaso</span>
+                            </label>
                         </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label id="label-cuenta-origen" class="block text-sm font-medium text-slate-700 mb-1">Cuenta</label>
+                                <select id="mov-cuenta-select" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
+                            </div>
+                            <div id="container-cuenta-destino" class="hidden">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Cuenta de Destino</label>
+                                <select id="mov-cuenta-destino-select" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div class="col-span-2">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Motivo / Categoría</label>
-                                <input type="text" id="mov-motivo" required placeholder="Ej. Alimentación, Vivienda, Ocio..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                                <input type="text" id="mov-motivo" required placeholder="Ej. Alimentación, Suministros, Streaming, Ocio..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Descripción / Concepto</label>
-                                <input type="text" id="mov-concepto" required placeholder="Ej. Mercadona mensual..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                                <input type="text" id="mov-concepto" required placeholder="Ej. Mercadona, Factura Luz, Netflix..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
                             </div>
                             <div class="col-span-2 sm:col-span-1">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Cantidad (€)</label>
@@ -388,12 +389,12 @@
                                 <div class="ml-3 text-sm font-medium text-slate-700">Es un movimiento recurrente (mensual)</div>
                             </label>
                         </div>
-                        <div class="pt-2 border-t border-slate-100">
+                        <div id="container-inversion" class="pt-2 border-t border-slate-100">
                             <label class="flex items-center cursor-pointer gap-3">
                                 <input type="checkbox" id="mov-inversion" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
                                 <div>
                                     <span class="text-sm font-medium text-slate-700">Es aportación a inversión</span>
-                                    <p class="text-xs text-slate-400">Diferencia este gasto de los demás (p.ej. fondos, plan de pensiones, broker…)</p>
+                                    <p class="text-xs text-slate-400">Diferencia este gasto de los demás (p.ej. fondos, broker…)</p>
                                 </div>
                             </label>
                         </div>
@@ -415,6 +416,36 @@
                 </div>
             </section>
 
+            <!-- VISTA: SUSCRIPCIONES -->
+            <section id="view-suscripciones" class="view-section max-w-3xl mx-auto space-y-4">
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white p-6 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold">Control de Suscripciones y Gastos Fijos</h3>
+                        <p class="text-xs text-indigo-200 mt-1">Carga automática de contratos recurrentes activos de la cuenta seleccionada.</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-lg border border-white/20 text-right">
+                        <span class="text-xs text-indigo-100 block font-medium">Total Comprometido Mensual</span>
+                        <span id="suscripciones-total-mensual" class="text-2xl font-bold tracking-tight">0.00 €</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <th class="p-4">Servicio / Categoría</th>
+                                    <th class="p-4">Importe Mensual</th>
+                                    <th class="p-4">Vigencia</th>
+                                    <th class="p-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-suscripciones-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                    <div id="suscripciones-vacio" class="hidden p-8 text-center text-slate-400 text-sm">No tienes cargada ninguna suscripción mensual recurrente en esta cuenta.</div>
+                </div>
+            </section>
+
             <!-- VISTA: HISTORIAL POR MESES -->
             <section id="view-historial-meses" class="view-section max-w-3xl mx-auto space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -429,8 +460,8 @@
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
                                     <th class="p-4">Mes / Período</th>
-                                    <th class="p-4">Ingresos</th>
-                                    <th class="p-4">Gastos</th>
+                                    <th class="p-4">Ingresos / Entradas</th>
+                                    <th class="p-4">Gastos / Salidas</th>
                                     <th class="p-4">Saldo Cierre</th>
                                 </tr>
                             </thead>
@@ -499,7 +530,7 @@
         </div>
     </div>
 
-    <!-- MODALES -->
+    <!-- MODALES ADICIONALES -->
     <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
             <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">Mensaje</h3>
@@ -526,7 +557,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA DEL MOTOR FINANCIERO -->
+    <!-- MOTOR DE LÓGICA JAVASCRIPT -->
     <script>
         /* --- 1. CONFIGURACIÓN PWA --- */
         const manifestData = {
@@ -555,7 +586,7 @@
             }
         });
 
-        /* --- 2. GESTIÓN BASE DE DATOS LOCAL (INDEXEDDB) --- */
+        /* --- 2. GESTIÓN LOCAL (INDEXEDDB) --- */
         const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0;
 
         function initDB() {
@@ -603,6 +634,7 @@
         const views = { 
             'dashboard': 'Proyecciones', 
             'movimiento': 'Añadir Movimiento', 
+            'suscripciones': 'Suscripciones y Gastos Fijos',
             'historial-meses': 'Historial por Meses', 
             'movimientos-activos': 'Movimientos Activos', 
             'cuentas': 'Mis Cuentas' 
@@ -616,6 +648,7 @@
             if(!document.getElementById('sidebar').classList.contains('sidebar-closed')) toggleSidebar();
             
             if(viewId === 'dashboard') actualizarTodo();
+            if(viewId === 'suscripciones') renderSuscripciones();
             if(viewId === 'historial-meses') renderHistorialMeses();
             if(viewId === 'movimientos-activos') renderMovimientosActivos();
             if(viewId === 'cuentas') renderListaCuentas();
@@ -635,36 +668,37 @@
 
         async function cargarSelectorGlobalCuentas() {
             const cuentas = await dbGetAll('cuentas');
-            const selects = [
-                document.getElementById('global-cuenta-select'), 
-                document.getElementById('mov-cuenta-select'),
-                document.getElementById('historial-cuenta-select'),
-                document.getElementById('activos-cuenta-select'),
-                document.getElementById('dash-cuenta-select')
-            ];
-            selects.forEach(sel => {
+            const selectIds = ['global-cuenta-select', 'mov-cuenta-select', 'mov-cuenta-destino-select'];
+            
+            selectIds.forEach(id => {
+                const sel = document.getElementById(id);
                 if (!sel) return;
                 sel.innerHTML = '';
                 cuentas.forEach(c => {
                     const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.nombre;
-                    if(c.id === cuentaActivaId) opt.selected = true;
+                    if(c.id === cuentaActivaId && id !== 'mov-cuenta-destino-select') opt.selected = true;
                     sel.appendChild(opt);
                 });
             });
+            
+            // Forzar una selección secundaria por defecto en el destino si hay varias cuentas
+            const dest = document.getElementById('mov-cuenta-destino-select');
+            if (dest && dest.options.length > 1 && dest.value == cuentaActivaId) {
+                dest.selectedIndex = (dest.selectedIndex + 1) % dest.options.length;
+            }
         }
 
         function cambiarCuentaActiva(id) {
             cuentaActivaId = parseInt(id);
-            const selects = ['global-cuenta-select', 'mov-cuenta-select', 'historial-cuenta-select', 'activos-cuenta-select', 'dash-cuenta-select'];
+            const selects = ['global-cuenta-select', 'mov-cuenta-select'];
             selects.forEach(sid => {
                 const el = document.getElementById(sid);
                 if (el) el.value = id;
             });
             
             actualizarTodo();
-            if(document.getElementById('view-historial-meses').classList.contains('active')) renderHistorialMeses();
-            if(document.getElementById('view-movimientos-activos').classList.contains('active')) renderMovimientosActivos();
-            if(document.getElementById('view-cuentas').classList.contains('active')) renderListaCuentas();
+            const activeView = Object.keys(views).find(v => document.getElementById(`view-${v}`).classList.contains('active'));
+            if (activeView) navigateTo(activeView);
         }
 
         function cambiarAniosProyeccion(anios) {
@@ -678,7 +712,26 @@
             actualizarTodo();
         }
 
-        /* --- 4. CONTROL DE REGLAS / FORMULARIO --- */
+        /* --- 4. FORMULARIO ADAPTATIVO (REGLAS Y TRASPASOS) --- */
+        function adaptarFormularioPorTipo() {
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const containerDestino = document.getElementById('container-cuenta-destino');
+            const containerInversion = document.getElementById('container-inversion');
+            const labelOrigen = document.getElementById('label-cuenta-origen');
+
+            if (tipo === 'transferencia') {
+                containerDestino.classList.remove('hidden');
+                containerInversion.classList.add('hidden');
+                labelOrigen.innerText = "Cuenta de Origen";
+                document.getElementById('mov-cuenta-destino-select').required = true;
+            } else {
+                containerDestino.classList.add('hidden');
+                containerInversion.classList.remove('hidden');
+                labelOrigen.innerText = "Cuenta";
+                document.getElementById('mov-cuenta-destino-select').required = false;
+            }
+        }
+
         function toggleFechaLimite() {
             const rec = document.getElementById('mov-recurrente').checked;
             document.getElementById('container-fecha-limite').classList.toggle('hidden', !rec);
@@ -699,21 +752,32 @@
             document.getElementById('submit-mov-btn').innerText = "Guardar Movimiento";
             document.getElementById('cancel-edit-btn').classList.add('hidden');
             const d = new Date(); document.getElementById('mov-fecha-inicio').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            adaptarFormularioPorTipo();
             toggleFechaLimite();
         }
 
         async function guardarMovimiento(e) {
             e.preventDefault();
             const idVal = document.getElementById('mov-id').value;
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const cuentaId = parseInt(document.getElementById('mov-cuenta-select').value);
+            const cuentaDestinoId = tipo === 'transferencia' ? parseInt(document.getElementById('mov-cuenta-destino-select').value) : null;
+
+            if (tipo === 'transferencia' && cuentaId === cuentaDestinoId) {
+                mostrarMensaje('Error de validación', 'La cuenta de origen y de destino no pueden ser la misma.');
+                return;
+            }
+
             const data = {
-                cuentaId: parseInt(document.getElementById('mov-cuenta-select').value),
-                tipo: document.querySelector('input[name="tipo"]:checked').value,
+                cuentaId: cuentaId,
+                cuentaDestinoId: cuentaDestinoId,
+                tipo: tipo,
                 motivo: document.getElementById('mov-motivo').value,
                 concepto: document.getElementById('mov-concepto').value,
                 cantidad: parseFloat(document.getElementById('mov-cantidad').value),
                 fechaInicio: document.getElementById('mov-fecha-inicio').value,
                 recurrente: document.getElementById('mov-recurrente').checked,
-                esInversion: document.getElementById('mov-inversion').checked,
+                esInversion: tipo !== 'transferencia' ? document.getElementById('mov-inversion').checked : false,
                 tieneLimite: document.getElementById('mov-tiene-limite').checked,
                 fechaFin: document.getElementById('mov-fecha-fin').value || null
             };
@@ -734,32 +798,66 @@
             navigateTo('movimientos-activos');
         }
 
-        /* --- 5. RENDERIZADO DE VISTAS ANALÍTICAS --- */
+        /* --- 5. VISUALIZACIÓN ANALÍTICA DE SUSCRIPCIONES --- */
+        async function renderSuscripciones() {
+            const todos = await dbGetAll('movimientos');
+            const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId && m.tipo === 'gasto' && m.recurrente);
+            const tbody = document.getElementById('tabla-suscripciones-body');
+            tbody.innerHTML = '';
+            
+            let acumuladoMensual = 0;
+            document.getElementById('suscripciones-vacio').classList.toggle('hidden', filtrados.length > 0);
+
+            filtrados.forEach(m => {
+                acumuladoMensual += m.cantidad;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                
+                let vigencia = `Mensual desde ${m.fechaInicio}`;
+                if (m.tieneLimite && m.fechaFin) vigencia += ` hasta ${m.fechaFin}`;
+
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-semibold text-slate-800">${m.concepto}</div>
+                        <div class="text-xs text-slate-400">${m.motivo}</div>
+                    </td>
+                    <td class="p-4 font-bold text-red-600">-${m.cantidad.toFixed(2)} €</td>
+                    <td class="p-4 text-xs text-slate-500">${vigencia}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="editarMovimientoInPlace(${m.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Editar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('suscripciones-total-mensual').innerText = acumuladoMensual.toFixed(2) + ' €';
+        }
+
+        /* --- 6. RENDERIZADO DE VISTAS COMPLEMENTARIAS --- */
         async function renderHistorialMeses() {
             if (!cuentaActivaId) return;
             const cuenta = await dbGet('cuentas', cuentaActivaId);
             if (!cuenta) return;
             const todos = await dbGetAll('movimientos');
-            const movs = todos.filter(m => m.cuentaId === cuentaActivaId);
+            
+            // Filtrar movimientos que afecten estructuralmente a esta cuenta (como origen o como destino)
+            const movs = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
 
             const tbody = document.getElementById('tabla-meses-body');
             tbody.innerHTML = '';
 
             const hoy = new Date();
-            const currentYear = hoy.getFullYear();
-            const currentMonth = hoy.getMonth();
-            const mesActualStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const mesActualStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
 
             let minFechaStr = mesActualStr;
             movs.forEach(m => { if (m.fechaInicio < minFechaStr) minFechaStr = m.fechaInicio; });
 
             let startParts = minFechaStr.split('-');
             let startIdx = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, 1);
-            let endIdx = new Date(currentYear, currentMonth, 1);
+            let endIdx = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 
             let balanceSimulado = parseFloat(cuenta.base) || 0;
             let listaMeses = [];
-
             let diffMeses = (endIdx.getFullYear() - startIdx.getFullYear()) * 12 + (endIdx.getMonth() - startIdx.getMonth());
             if (diffMeses < 0) diffMeses = 0;
 
@@ -767,8 +865,8 @@
                 let f = new Date(startIdx.getFullYear(), startIdx.getMonth() + i, 1);
                 let mesStr = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
                 
-                let ingresosMes = 0;
-                let gastosMes = 0;
+                let entradasMes = 0;
+                let salidasMes = 0;
 
                 movs.forEach(m => {
                     let aplicar = false;
@@ -776,13 +874,18 @@
                     else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) aplicar = true; } }
                     
                     if (aplicar) {
-                        if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
-                        else gastosMes += m.cantidad;
+                        if (m.tipo === 'transferencia') {
+                            if (m.cuentaId === cuentaActivaId) salidasMes += m.cantidad;
+                            if (m.cuentaDestinoId === cuentaActivaId) entradasMes += m.cantidad;
+                        } else {
+                            if (m.tipo === 'ingreso') entradasMes += m.cantidad;
+                            else salidasMes += m.cantidad;
+                        }
                     }
                 });
 
-                balanceSimulado += (ingresosMes - gastosMes);
-                listaMeses.push({ mes: mesStr, ingresos: ingresosMes, gastos: gastosMes, saldo: balanceSimulado });
+                balanceSimulado += (entradasMes - salidasMes);
+                listaMeses.push({ mes: mesStr, ingresos: entradasMes, gastos: salidasMes, saldo: balanceSimulado });
             }
 
             let mesesHtml = '';
@@ -806,11 +909,14 @@
 
         async function renderMovimientosActivos() {
             const todos = await dbGetAll('movimientos');
-            const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId);
+            const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
             const tbody = document.getElementById('tabla-movimientos-body');
             tbody.innerHTML = '';
             
             document.getElementById('historial-vacio').classList.toggle('hidden', filtrados.length > 0);
+
+            const cuentas = await dbGetAll('cuentas');
+            const nombreCuenta = (id) => { const c = cuentas.find(x => x.id === id); return c ? c.nombre : 'Desconocida'; };
 
             filtrados.forEach(m => {
                 const tr = document.createElement('tr');
@@ -819,16 +925,34 @@
                 let vigencia = m.recurrente ? `Mensual desde ${m.fechaInicio}` : `Único en ${m.fechaInicio}`;
                 if (m.recurrente && m.tieneLimite) vigencia += ` hasta ${m.fechaFin}`;
 
+                let BadgeTipo = '';
+                let visualImporte = '';
+                
+                if (m.tipo === 'transferencia') {
+                    if (m.cuentaId === cuentaActivaId) {
+                        BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800">TRASPASO (SALIDA)</span>`;
+                        visualImporte = `<td class="p-4 font-bold text-amber-600">-${m.cantidad.toFixed(2)} €</td>`;
+                    } else {
+                        BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800">TRASPASO (ENTRADA)</span>`;
+                        visualImporte = `<td class="p-4 font-bold text-green-600">+${m.cantidad.toFixed(2)} €</td>`;
+                    }
+                } else {
+                    BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full ${m.tipo === 'ingreso' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}">${m.tipo.toUpperCase()}</span>`;
+                    visualImporte = `<td class="p-4 font-bold ${m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}">${m.tipo === 'ingreso' ? '+' : '-'}${m.cantidad.toFixed(2)} €</td>`;
+                }
+
+                let infoConcepto = m.tipo === 'transferencia' ? `Hacia: ${nombreCuenta(m.cuentaDestinoId)}` : m.motivo;
+
                 tr.innerHTML = `
                     <td class="p-4">
                         <div class="font-semibold text-slate-800">${m.concepto}</div>
-                        <div class="text-xs text-slate-400">${m.motivo}</div>
+                        <div class="text-xs text-slate-400">${infoConcepto}</div>
                     </td>
                     <td class="p-4">
-                        <span class="px-2 py-1 text-xs font-medium rounded-full ${m.tipo === 'ingreso' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}">${m.tipo.toUpperCase()}</span>
+                        ${BadgeTipo}
                         ${m.esInversion ? '<span class="ml-1 px-2 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">INVERSIÓN</span>' : ''}
                     </td>
-                    <td class="p-4 font-bold ${m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}">${m.cantidad.toFixed(2)} €</td>
+                    ${visualImporte}
                     <td class="p-4 text-xs text-slate-500">${vigencia}</td>
                     <td class="p-4 text-right space-x-2 whitespace-nowrap">
                         <button onclick="editarMovimientoInPlace(${m.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Editar</button>
@@ -843,7 +967,14 @@
             const m = await dbGet('movimientos', id);
             document.getElementById('mov-id').value = m.id;
             document.getElementById('mov-cuenta-select').value = m.cuentaId;
-            document.getElementById(m.tipo === 'ingreso' ? 'tipo-ingreso' : 'tipo-gasto').checked = true;
+            
+            document.getElementById(`tipo-${m.tipo}`).checked = true;
+            adaptarFormularioPorTipo();
+            
+            if (m.tipo === 'transferencia') {
+                document.getElementById('mov-cuenta-destino-select').value = m.cuentaDestinoId;
+            }
+
             document.getElementById('mov-motivo').value = m.motivo;
             document.getElementById('mov-concepto').value = m.concepto;
             document.getElementById('mov-cantidad').value = m.cantidad;
@@ -869,7 +1000,7 @@
             }
         }
 
-        /* --- 6. LÓGICA DE CUENTAS --- */
+        /* --- 7. LÓGICA DE CUENTAS --- */
         async function guardarNuevaCuenta(e) {
             e.preventDefault();
             const n = document.getElementById('nueva-cuenta-nombre').value;
@@ -907,166 +1038,145 @@
             if (confirm('¿Eliminar cuenta y todas sus reglas asociadas?')) {
                 await dbDelete('cuentas', id);
                 const todos = await dbGetAll('movimientos');
-                for (const m of todos) { if(m.cuentaId === id) await dbDelete('movimientos', m.id); }
+                for (const m of todos) { if(m.cuentaId === id || m.cuentaDestinoId === id) await dbDelete('movimientos', m.id); }
                 cerrarModalEditarCuenta(); await cargarSelectorGlobalCuentas();
                 if (cuentaActivaId === id) cuentaActivaId = (await dbGetAll('cuentas'))[0].id;
                 cambiarCuentaActiva(cuentaActivaId);
             }
         }
 
-        /* --- 7. MOTOR GRÁFICA Y CÁLCULOS FUTUROS --- */
+        /* --- 8. CENTRALIZACIÓN Y CÁLCULOS DEL MOTOR FINANCIERO --- */
         async function actualizarTodo() {
-			if (!cuentaActivaId) return;
-			
-			const cuenta = await dbGet('cuentas', cuentaActivaId);
-			const todos = await dbGetAll('movimientos');
-			const movs = todos.filter(m => m.cuentaId === cuentaActivaId);
+            if (!cuentaActivaId) return;
+            
+            const cuenta = await dbGet('cuentas', cuentaActivaId);
+            const todos = await dbGetAll('movimientos');
+            const movs = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
 
-			const hoy = new Date();
-			const mesHoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
-			const labels = [];
-			const data = [];
-			let acumulado = parseFloat(cuenta.base) || 0;
-			let saldoMesActual = null;
+            const hoy = new Date();
+            const mesHoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+            const labels = [];
+            const data = [];
+            let acumulado = parseFloat(cuenta.base) || 0;
+            let saldoMesActual = null;
 
-			// Datos gráficos adicionales
-			let totalIngresos = 0;
-			let totalGastos = 0;
-			const barLabels = [];
-			const barIngresos = [];
-			const barGastos = [];
+            let totalIngresos = 0;
+            let totalGastos = 0;
+            const barLabels = [];
+            const barIngresos = [];
+            const barGastos = [];
+            const heatmapData = [];
 
-			// Heatmap: neto por mes durante el horizonte
-			const heatmapData = []; // {mesStr, neto}
+            const categoriasGasto = {};
+            const stackedLabels = [];
+            const wfMovs = [];
+            let wfSaldoInicial = acumulado;
 
-			// Stacked area: gastos por categoría (motivo) primer año
-			const categoriasGasto = {}; // motivo -> [12 valores]
-			const stackedLabels = [];
+            const limiteMeses = aniosProyeccion * 12;
+            const tasaMensual = interesCompuestoMensual / 100;
 
-			// Waterfall: movimientos del mes actual
-			const wfMovs = [];
-			let wfSaldoInicial = parseFloat(cuenta.base) || 0;
+            for (let i = 0; i <= limiteMeses; i++) {
+                let fechaActual = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+                let mesStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`;
+                
+                let ingresosMes = 0;
+                let gastosMes = 0;
+                const movsMes = [];
 
-			const limiteMeses = aniosProyeccion * 12;
-			const tasaMensual = interesCompuestoMensual / 100;
+                movs.forEach(m => {
+                    let esValido = false;
+                    if (!m.recurrente) {
+                        if (mesStr === m.fechaInicio) esValido = true;
+                    } else {
+                        if (mesStr >= m.fechaInicio) {
+                            if (m.tieneLimite && m.fechaFin) { if (mesStr <= m.fechaFin) esValido = true; }
+                            else esValido = true;
+                        }
+                    }
+                    if (esValido) {
+                        if (m.tipo === 'transferencia') {
+                            if (m.cuentaId === cuentaActivaId) gastosMes += m.cantidad;
+                            if (m.cuentaDestinoId === cuentaActivaId) ingresosMes += m.cantidad;
+                        } else {
+                            if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
+                            else gastosMes += m.cantidad;
+                        }
+                        if (mesStr === mesHoyStr) movsMes.push(m);
+                    }
+                });
 
-			// Calcular saldo acumulado hasta inicio del mes actual para el waterfall
-			for (let i = 0; i < 0; i++) {} // placeholder, calculado abajo
+                const variacionMes = ingresosMes - gastosMes;
+                const saldoAntesDeMes = acumulado;
 
-			// Pre-calcular saldo al inicio del mes actual (i=0 es el mes actual)
-			let saldoPreMesActual = parseFloat(cuenta.base) || 0;
+                if (tasaMensual > 0) {
+                    acumulado = acumulado * (1 + tasaMensual) + variacionMes;
+                } else {
+                    acumulado += variacionMes;
+                }
 
-			for (let i = 0; i <= limiteMeses; i++) {
-				let fechaActual = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
-				let mesStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`;
-				
-				let ingresosMes = 0;
-				let gastosMes = 0;
-				const movsMes = []; // para waterfall
+                labels.push(mesStr);
+                data.push(acumulado);
+                totalIngresos += ingresosMes;
+                totalGastos += gastosMes;
+                heatmapData.push({ mesStr, neto: variacionMes });
 
-				movs.forEach(m => {
-					let esValido = false;
-					if (!m.recurrente) {
-						if (mesStr === m.fechaInicio) esValido = true;
-					} else {
-						if (mesStr >= m.fechaInicio) {
-							if (m.tieneLimite && m.fechaFin) { if (mesStr <= m.fechaFin) esValido = true; }
-							else esValido = true;
-						}
-					}
-					if (esValido) {
-						if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
-						else gastosMes += m.cantidad;
-						if (mesStr === mesHoyStr) movsMes.push(m);
-					}
-				});
+                if (i > 0 && i <= 12) {
+                    const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                    barLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+                    barIngresos.push(ingresosMes);
+                    barGastos.push(gastosMes);
+                    stackedLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+                    
+                    movs.forEach(m => {
+                        if (m.tipo !== 'gasto') return; 
+                        let esValidoGasto = false;
+                        if (!m.recurrente) { if (mesStr === m.fechaInicio) esValidoGasto = true; }
+                        else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) esValidoGasto = true; } }
+                        
+                        if (esValidoGasto) {
+                            if (!categoriasGasto[m.motivo]) categoriasGasto[m.motivo] = new Array(12).fill(0);
+                            categoriasGasto[m.motivo][i - 1] += m.cantidad;
+                        }
+                    });
+                }
 
-				const variacionMes = ingresosMes - gastosMes;
-				const saldoAntesDeMes = acumulado;
+                if (mesStr === mesHoyStr) {
+                    saldoMesActual = acumulado;
+                    wfSaldoInicial = saldoAntesDeMes;
+                    movsMes.forEach(m => wfMovs.push(m));
+                }
+            }
 
-				if (tasaMensual > 0) {
-					acumulado = acumulado * (1 + tasaMensual) + variacionMes;
-				} else {
-					acumulado += variacionMes;
-				}
+            const saldoMostrar = saldoMesActual !== null ? saldoMesActual : data[0];
+            document.getElementById('dash-saldo-actual').innerText = saldoMostrar.toFixed(2) + ' €';
 
-				labels.push(mesStr);
-				data.push(acumulado);
-				totalIngresos += ingresosMes;
-				totalGastos += gastosMes;
-				heatmapData.push({ mesStr, neto: variacionMes });
+            const ingMesActual = barIngresos[0] || 0;
+            const gastMesActual = barGastos[0] || 0;
+            const tasaAhorro = ingMesActual > 0 ? Math.max(0, Math.min(100, ((ingMesActual - gastMesActual) / ingMesActual) * 100)) : 0;
+            renderGauge(tasaAhorro, ingMesActual, gastMesActual);
 
-				// Barras primer año
-				if (i > 0 && i <= 12) {
-					const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-					barLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
-					barIngresos.push(ingresosMes);
-					barGastos.push(gastosMes);
-				}
+            const gastoMedioMensual = totalGastos > 0 ? totalGastos / limiteMeses : 0;
+            const runway = gastoMedioMensual > 0 ? Math.floor(saldoMostrar / gastoMedioMensual) : null;
+            renderRunway(runway);
+            renderFondoEmergencia(saldoMostrar, gastoMedioMensual);
 
-				// Stacked area primer año (i=1..12)
-				if (i >= 1 && i <= 12) {
-					const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-					stackedLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
-					movs.forEach(m => {
-						if (m.tipo !== 'gasto') return;
-						let esValido = false;
-						if (!m.recurrente) { if (mesStr === m.fechaInicio) esValido = true; }
-						else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) esValido = true; } }
-						if (esValido) {
-							if (!categoriasGasto[m.motivo]) categoriasGasto[m.motivo] = new Array(12).fill(0);
-							const idx = i - 1;
-							categoriasGasto[m.motivo][idx] = (categoriasGasto[m.motivo][idx] || 0) + m.cantidad;
-						}
-					});
-				}
+            const alertaEl = document.getElementById('alerta-deficit');
+            if (ingMesActual > 0 && gastMesActual / ingMesActual > 0.8) {
+                document.getElementById('alerta-deficit-texto').textContent = `Tus egresos representan el ${Math.round((gastMesActual / ingMesActual) * 100)}% de tus ingresos este mes.`;
+                alertaEl.classList.add('visible');
+            } else {
+                alertaEl.classList.remove('visible');
+            }
 
-				// Waterfall mes actual
-				if (mesStr === mesHoyStr) {
-					saldoMesActual = acumulado;
-					wfSaldoInicial = saldoAntesDeMes;
-					movsMes.forEach(m => wfMovs.push(m));
-				}
-			}
+            renderChart(labels, data);
+            renderPieChart(totalIngresos, totalGastos);
+            renderBarChart(barLabels, barIngresos, barGastos);
+            renderWaterfall(wfSaldoInicial, wfMovs);
+            renderHeatmap(heatmapData);
+            renderStackedArea(stackedLabels, categoriasGasto);
+        }
 
-			// KPI: saldo
-			const saldoMostrar = saldoMesActual !== null ? saldoMesActual : data[0];
-			document.getElementById('dash-saldo-actual').innerText = saldoMostrar.toFixed(2) + ' €';
-
-			// KPI: Velocímetro de ahorro (mes actual)
-			const ingMesActual = barIngresos[0] || 0;
-			const gastMesActual = barGastos[0] || 0;
-			const tasaAhorro = ingMesActual > 0 ? Math.max(0, Math.min(100, ((ingMesActual - gastMesActual) / ingMesActual) * 100)) : 0;
-			renderGauge(tasaAhorro, ingMesActual, gastMesActual);
-
-			// KPI: Runway
-			const gastoMedioMensual = totalGastos > 0 ? totalGastos / limiteMeses : 0;
-			const runway = gastoMedioMensual > 0 ? Math.floor(saldoMostrar / gastoMedioMensual) : null;
-			renderRunway(runway);
-
-			// KPI: Fondo de emergencia
-			renderFondoEmergencia(saldoMostrar, gastoMedioMensual);
-
-			// Alerta de déficit (si gastos mes actual > 80% de ingresos mes actual)
-			const alertaEl = document.getElementById('alerta-deficit');
-			const alertaTexto = document.getElementById('alerta-deficit-texto');
-			if (ingMesActual > 0 && gastMesActual / ingMesActual > 0.8) {
-				const pctGastos = Math.round((gastMesActual / ingMesActual) * 100);
-				alertaTexto.textContent = `Tus gastos este mes representan el ${pctGastos}% de tus ingresos. Considera revisar tu presupuesto.`;
-				alertaEl.classList.add('visible');
-			} else {
-				alertaEl.classList.remove('visible');
-			}
-
-			// Gráficas
-			renderChart(labels, data);
-			renderPieChart(totalIngresos, totalGastos);
-			renderBarChart(barLabels, barIngresos, barGastos);
-			renderWaterfall(wfSaldoInicial, wfMovs, mesHoyStr);
-			renderHeatmap(heatmapData);
-			renderStackedArea(stackedLabels, categoriasGasto);
-		}
-
+        /* --- 9. RENDERIZACIÓN DE COMPONENTES DE GRÁFICOS (CHART.JS) --- */
         function renderChart(labels, data) {
             const ctx = document.getElementById('projectionChart').getContext('2d'); if (currentChart) currentChart.destroy();
             let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)'); gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
@@ -1077,376 +1187,136 @@
         }
 
         function renderPieChart(totalIngresos, totalGastos) {
-            const ctx = document.getElementById('pieChart').getContext('2d');
-            if (currentPieChart) currentPieChart.destroy();
+            const ctx = document.getElementById('pieChart').getContext('2d'); if (currentPieChart) currentPieChart.destroy();
             const sinDatos = totalIngresos === 0 && totalGastos === 0;
             currentPieChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: sinDatos ? ['Sin datos'] : ['Ingresos Totales', 'Gastos Totales'],
-                    datasets: [{
-                        data: sinDatos ? [1] : [totalIngresos, totalGastos],
-                        backgroundColor: sinDatos ? ['#e2e8f0'] : ['#22c55e', '#f43f5e'],
-                        borderColor: sinDatos ? ['#cbd5e1'] : ['#16a34a', '#e11d48'],
-                        borderWidth: 2
-                    }]
+                    datasets: [{ data: sinDatos ? [1] : [totalIngresos, totalGastos], backgroundColor: sinDatos ? ['#e2e8f0'] : ['#22c55e', '#f43f5e'], borderColor: sinDatos ? ['#cbd5e1'] : ['#16a34a', '#e11d48'], borderWidth: 2 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 16, font: { size: 13 } } },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    if (sinDatos) return ' Sin movimientos';
-                                    const total = totalIngresos + totalGastos;
-                                    const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
-                                    return ` ${ctx.raw.toFixed(2)} € (${pct}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
         }
 
         function renderBarChart(labels, ingresos, gastos) {
-            const ctx = document.getElementById('barChart').getContext('2d');
-            if (currentBarChart) currentBarChart.destroy();
+            const ctx = document.getElementById('barChart').getContext('2d'); if (currentBarChart) currentBarChart.destroy();
             currentBarChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Ingresos (€)', data: ingresos, backgroundColor: 'rgba(34, 197, 94, 0.75)', borderColor: '#16a34a', borderWidth: 1.5, borderRadius: 4 },
-                        { label: 'Gastos (€)', data: gastos, backgroundColor: 'rgba(244, 63, 94, 0.75)', borderColor: '#e11d48', borderWidth: 1.5, borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-                        y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
-                    },
-                    interaction: { mode: 'index', intersect: false }
-                }
+                data: { labels: labels, datasets: [{ label: 'Ingresos (€)', data: ingresos, backgroundColor: 'rgba(34, 197, 94, 0.75)', borderColor: '#16a34a', borderWidth: 1.5 }, { label: 'Gastos (€)', data: gastos, backgroundColor: 'rgba(244, 63, 94, 0.75)', borderColor: '#e11d48', borderWidth: 1.5 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
         }
 
-        function renderGauge(pct, ingresos, gastos) {
-            const path = document.getElementById('gauge-fill-path');
-            const text = document.getElementById('gauge-pct-text');
-            const label = document.getElementById('dash-ahorro-label');
-            if (!path) return;
-            const arcLen = 251.2;
-            const offset = arcLen - (arcLen * pct / 100);
-            path.style.strokeDashoffset = offset;
-            const color = pct >= 20 ? '#22c55e' : pct >= 5 ? '#f59e0b' : '#ef4444';
-            path.style.stroke = color;
-            text.textContent = Math.round(pct) + '%';
-            text.style.fill = color;
-            if (ingresos === 0) label.textContent = 'Sin ingresos registrados';
-            else label.textContent = `Ahorro: ${(ingresos - gastos).toFixed(0)} € de ${ingresos.toFixed(0)} €`;
-        }
-
-        function abrirHelp(titulo, texto) {
-            document.getElementById('help-modal-title').textContent = titulo;
-            document.getElementById('help-modal-body').textContent = texto;
-            document.getElementById('help-modal').classList.add('open');
-        }
-        function cerrarHelpModal(e) {
-            if (!e || e.target === document.getElementById('help-modal')) {
-                document.getElementById('help-modal').classList.remove('open');
-            }
-        }
-
-        function renderFondoEmergencia(saldo, gastoMedioMensual) {
-            const objetivo = 6; // meses
-            const mesesCubiertos = gastoMedioMensual > 0 ? saldo / gastoMedioMensual : null;
-            const el_texto = document.getElementById('fondo-texto');
-            const el_pct = document.getElementById('fondo-pct');
-            const el_barra = document.getElementById('fondo-barra');
-            const el_semaforo = document.getElementById('fondo-semaforo');
-            const el_label = document.getElementById('fondo-label');
-
-            if (mesesCubiertos === null || mesesCubiertos < 0) {
-                el_texto.textContent = 'Sin gastos proyectados';
-                el_pct.textContent = '—';
-                el_barra.style.width = '0%';
-                el_semaforo.textContent = '⚪';
-                el_label.textContent = 'Registra gastos para calcular tu fondo de emergencia';
-                return;
-            }
-            const pct = Math.min(100, (mesesCubiertos / objetivo) * 100);
-            const mesesRedondeado = Math.floor(mesesCubiertos * 10) / 10;
-            el_texto.textContent = `${mesesRedondeado} de ${objetivo} meses cubiertos`;
-            el_pct.textContent = Math.round(pct) + '%';
-            el_barra.style.width = pct + '%';
-            const color = pct >= 100 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
-            el_barra.style.background = color;
-            if (pct >= 100) { el_semaforo.textContent = '🟢'; el_label.textContent = '✓ Fondo completo — objetivo de 6 meses alcanzado'; }
-            else if (pct >= 50) { el_semaforo.textContent = '🟡'; el_label.textContent = `A mitad de camino — faltan ${(objetivo - mesesCubiertos).toFixed(1)} meses`; }
-            else { el_semaforo.textContent = '🔴'; el_label.textContent = `Reserva insuficiente — faltan ${(objetivo - Math.max(0,mesesCubiertos)).toFixed(1)} meses para el objetivo`; }
-        }
-
-        function renderRunway(meses) {
-            const valor = document.getElementById('dash-runway-valor');
-            const labelEl = document.getElementById('dash-runway-label');
-            const barra = document.getElementById('dash-runway-barra');
-            if (meses === null || meses < 0) {
-                valor.textContent = '∞'; barra.style.width = '100%'; barra.style.background = '#22c55e';
-                labelEl.textContent = 'Sin gastos proyectados — saldo seguro';
-                return;
-            }
-            valor.textContent = meses;
-            const pctBarra = Math.min(100, (meses / 24) * 100);
-            barra.style.width = pctBarra + '%';
-            barra.style.background = meses >= 6 ? '#22c55e' : meses >= 3 ? '#f59e0b' : '#ef4444';
-            if (meses >= 12) labelEl.textContent = '✓ Muy estable — más de un año cubierto';
-            else if (meses >= 6) labelEl.textContent = 'Buena reserva — entre 6 y 12 meses';
-            else if (meses >= 3) labelEl.textContent = '⚠ Reserva justa — menos de 6 meses';
-            else labelEl.textContent = '⚠ Reserva crítica — menos de 3 meses';
-        }
-
-        function renderWaterfall(saldoInicial, movimientos, mesStr) {
-            const ctx = document.getElementById('waterfallChart').getContext('2d');
-            if (currentWaterfallChart) currentWaterfallChart.destroy();
-
-            const wfLabels = ['Saldo inicial'];
-            const wfBase = [0];
-            const wfAltura = [saldoInicial];
-            const wfColores = ['rgba(79,70,229,0.75)'];
-
+        function renderWaterfall(saldoInicial, movimientos) {
+            const ctx = document.getElementById('waterfallChart').getContext('2d'); if (currentWaterfallChart) currentWaterfallChart.destroy();
+            const wfLabels = ['Saldo inicial']; const wfBase = [0]; const wfAltura = [saldoInicial]; const wfColores = ['rgba(79,70,229,0.75)'];
             let acum = saldoInicial;
+            
             movimientos.forEach(m => {
-                const val = m.tipo === 'ingreso' ? m.cantidad : -m.cantidad;
-                wfLabels.push(m.concepto.length > 12 ? m.concepto.slice(0, 12) + '…' : m.concepto);
+                let val = 0;
+                if (m.tipo === 'transferencia') {
+                    val = m.cuentaId === cuentaActivaId ? -m.cantidad : m.cantidad;
+                } else {
+                    val = m.tipo === 'ingreso' ? m.cantidad : -m.cantidad;
+                }
+                wfLabels.push(m.concepto.slice(0, 12));
                 wfBase.push(val >= 0 ? acum : acum + val);
                 wfAltura.push(Math.abs(val));
                 wfColores.push(val >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(244,63,94,0.8)');
                 acum += val;
             });
-
-            wfLabels.push('Saldo final');
-            wfBase.push(0);
-            wfAltura.push(acum);
-            wfColores.push(acum >= saldoInicial ? 'rgba(79,70,229,0.9)' : 'rgba(244,63,94,0.9)');
-
-            if (movimientos.length === 0) {
-                ctx.canvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sin movimientos en el mes actual.</div>';
-                return;
-            }
+            wfLabels.push('Saldo final'); wfBase.push(0); wfAltura.push(acum); wfColores.push('rgba(79,70,229,0.9)');
 
             currentWaterfallChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: wfLabels,
-                    datasets: [
-                        { label: 'Base', data: wfBase, backgroundColor: 'transparent', borderWidth: 0, stack: 'wf' },
-                        { label: 'Importe', data: wfAltura, backgroundColor: wfColores, borderRadius: 4, stack: 'wf' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    if (ctx.datasetIndex === 0) return null;
-                                    const base = ctx.chart.data.datasets[0].data[ctx.dataIndex];
-                                    const h = ctx.raw;
-                                    const final = base + h;
-                                    return ` ${final >= 0 ? '+' : ''}${(base === 0 && ctx.dataIndex !== wfLabels.length - 1 ? h : final).toFixed(2)} €`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
-                        y: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
-                    }
-                }
+                data: { labels: wfLabels, datasets: [{ label: 'Base', data: wfBase, backgroundColor: 'transparent', stack: 'wf' }, { label: 'Importe', data: wfAltura, backgroundColor: wfColores, stack: 'wf' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { display: false } } }
             });
+        }
+
+        function renderGauge(pct, ingresos, gastos) {
+            const path = document.getElementById('gauge-fill-path'); const text = document.getElementById('gauge-pct-text');
+            if (!path) return;
+            const offset = 251.2 - (251.2 * pct / 100); path.style.strokeDashoffset = offset;
+            const color = pct >= 20 ? '#22c55e' : pct >= 5 ? '#f59e0b' : '#ef4444'; path.style.stroke = color;
+            text.textContent = Math.round(pct) + '%'; text.style.fill = color;
+            document.getElementById('dash-ahorro-label').textContent = ingresos === 0 ? 'Sin ingresos' : `Ahorrado: ${(ingresos - gastos).toFixed(0)} €`;
+        }
+
+        function renderRunway(meses) {
+            const valor = document.getElementById('dash-runway-valor'); const barra = document.getElementById('dash-runway-barra');
+            if (meses === null || meses < 0) { valor.textContent = '∞'; barra.style.width = '100%'; barra.style.background = '#22c55e'; return; }
+            valor.textContent = meses; barra.style.width = Math.min(100, (meses / 24) * 100) + '%';
+            barra.style.background = meses >= 6 ? '#22c55e' : meses >= 3 ? '#f59e0b' : '#ef4444';
+        }
+
+        function renderFondoEmergencia(saldo, gastoMedioMensual) {
+            const meses = gastoMedioMensual > 0 ? saldo / gastoMedioMensual : 0;
+            const pct = Math.min(100, (meses / 6) * 100);
+            document.getElementById('fondo-texto').textContent = `${Math.max(0, meses).toFixed(1)} de 6 meses`;
+            document.getElementById('fondo-pct').textContent = Math.round(pct) + '%';
+            document.getElementById('fondo-barra').style.width = pct + '%';
+            document.getElementById('fondo-semaforo').textContent = pct >= 100 ? '🟢' : pct >= 50 ? '🟡' : '🔴';
         }
 
         function renderHeatmap(heatmapData) {
-            const container = document.getElementById('heatmap-container');
-            if (!container) return;
-            if (heatmapData.length === 0) { container.innerHTML = '<p class="text-center text-slate-400 text-sm py-4">Sin datos.</p>'; return; }
-
-            const nombresMeses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-            // Agrupar por año
-            const porAnio = {};
-            heatmapData.forEach(({ mesStr, neto }) => {
-                const [anio, mes] = mesStr.split('-');
-                if (!porAnio[anio]) porAnio[anio] = {};
-                porAnio[anio][parseInt(mes) - 1] = neto;
-            });
-
-            const maxAbs = Math.max(...heatmapData.map(d => Math.abs(d.neto)), 1);
-
-            const colorCell = (neto) => {
-                const t = Math.min(1, Math.abs(neto) / maxAbs);
-                if (neto > 0) {
-                    const g = Math.round(134 + t * (22 - 134)); // 86..22
-                    const r = Math.round(239 - t * (239 - 22)); // lightest to darkest green
-                    return `rgb(${Math.round(22 + (1-t)*214)},${Math.round(163 + (1-t)*92)},${Math.round(74 + (1-t)*166)})`;
-                } else if (neto < 0) {
-                    const intensity = t;
-                    return `rgb(${Math.round(239 - (1-intensity)*15)},${Math.round(68 + (1-intensity)*97)},${Math.round(68 + (1-intensity)*97)})`;
-                }
-                return '#e2e8f0';
-            };
-
-            // Mejor función de color
-            const getColor = (neto) => {
-                if (neto === 0) return '#e2e8f0';
-                const t = Math.min(1, Math.abs(neto) / maxAbs);
-                if (neto > 0) {
-                    // verde claro -> oscuro
-                    const r = Math.round(134 - t * 112);
-                    const g = Math.round(239 - t * 97);
-                    const b = Math.round(172 - t * 150);
-                    return `rgb(${r},${g},${b})`;
-                } else {
-                    const r = Math.round(252 - t * 13);
-                    const g = Math.round(165 - t * 97);
-                    const b = Math.round(165 - t * 97);
-                    return `rgb(${r},${g},${b})`;
-                }
-            };
-
-            let html = '<div style="min-width:420px"><table class="w-full border-separate" style="border-spacing:3px">';
-            html += '<thead><tr><th class="text-left text-xs text-slate-400 font-medium pb-1" style="width:40px">Año</th>';
-            nombresMeses.forEach(m => { html += `<th class="text-center text-xs text-slate-400 font-medium pb-1">${m}</th>`; });
-            html += '</tr></thead><tbody>';
-
-            Object.keys(porAnio).sort().forEach(anio => {
-                html += `<tr><td class="text-xs font-bold text-slate-600 pr-2">${anio}</td>`;
+            const container = document.getElementById('heatmap-container'); if (!container) return;
+            const porAnio = {}; heatmapData.forEach(d => { const [a, m] = d.mesStr.split('-'); if (!porAnio[a]) porAnio[a] = {}; porAnio[a][parseInt(m)-1] = d.neto; });
+            let html = '<table class="w-full border-separate" style="border-spacing:3px"><tbody>';
+            Object.keys(porAnio).sort().forEach(a => {
+                html += `<tr><td class="text-xs font-bold pr-2">${a}</td>`;
                 for (let m = 0; m < 12; m++) {
-                    const neto = porAnio[anio][m] ?? null;
-                    if (neto === null) {
-                        html += '<td></td>';
-                    } else {
-                        const color = getColor(neto);
-                        const title = `${nombresMeses[m]} ${anio}: ${neto >= 0 ? '+' : ''}${neto.toFixed(2)} €`;
-                        html += `<td><div class="heatmap-cell" style="background:${color};height:28px;" title="${title}"></div></td>`;
-                    }
+                    const v = porAnio[a][m] || 0;
+                    const color = v > 0 ? `rgba(34,197,94,${Math.min(1, v/5000)})` : v < 0 ? `rgba(244,63,94,${Math.min(1, Math.abs(v)/5000)})` : '#e2e8f0';
+                    html += `<td style="background:${color}; height:20px;" class="heatmap-cell" title="${v.toFixed(2)} €"></td>`;
                 }
                 html += '</tr>';
             });
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
+            container.innerHTML = html + '</tbody></table>';
         }
 
         function renderStackedArea(labels, categoriasGasto) {
-            const ctx = document.getElementById('stackedAreaChart').getContext('2d');
-            if (currentStackedChart) currentStackedChart.destroy();
-            const categorias = Object.keys(categoriasGasto);
-            if (categorias.length === 0) {
-                ctx.canvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sin gastos categorizados.</div>';
-                return;
-            }
-            const palette = ['#6366f1','#f43f5e','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16'];
-            const datasets = categorias.map((cat, i) => ({
-                label: cat,
-                data: categoriasGasto[cat],
-                backgroundColor: palette[i % palette.length].replace(')', ',0.7)').replace('rgb', 'rgba').replace('#', 'rgba(') || palette[i % palette.length] + 'b3',
-                borderColor: palette[i % palette.length],
-                borderWidth: 1.5,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 2
-            }));
-
-            // Fix colors properly
-            datasets.forEach((ds, i) => {
-                const hex = palette[i % palette.length];
-                const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-                ds.backgroundColor = `rgba(${r},${g},${b},0.55)`;
-                ds.borderColor = hex;
-            });
-
-            currentStackedChart = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 12 } } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-                        y: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toLocaleString('es-ES') + ' €' } }
-                    },
-                    interaction: { mode: 'index', intersect: false }
-                }
-            });
+            const ctx = document.getElementById('stackedAreaChart').getContext('2d'); if (currentStackedChart) currentStackedChart.destroy();
+            const cats = Object.keys(categoriasGasto); if(cats.length === 0) return;
+            const palette = ['#6366f1','#f43f5e','#f59e0b','#10b981','#3b82f6'];
+            const datasets = cats.map((c, idx) => ({ label: c, data: categoriasGasto[c], backgroundColor: palette[idx % palette.length], fill: true }));
+            currentStackedChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { stacked: true } } } });
         }
 
-        /* --- 8. EXPORTAR / IMPORTAR COPIAS SEGURIDAD --- */
+        function abrirHelp(t, b) { document.getElementById('help-modal-title').innerText = t; document.getElementById('help-modal-body').innerText = b; document.getElementById('help-modal').classList.add('open'); }
+        function cerrarHelpModal() { document.getElementById('help-modal').classList.remove('open'); }
+
+        /* --- 10. IMPORTACIÓN / EXPORTACIÓN Y COPIA DE SEGURIDAD --- */
         async function exportarDatos() {
-            const cuentas = await dbGetAll('cuentas');
-            const movimientos = await dbGetAll('movimientos');
-            const backup = { cuentas, movimientos };
-            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `finanzas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
-            URL.revokeObjectURL(url);
+            const cc = await dbGetAll('cuentas'); const mm = await dbGetAll('movimientos');
+            const blob = new Blob([JSON.stringify({ cuentas: cc, movimientos: mm })], { type: 'application/json' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `finanzas_backup.json`; a.click();
         }
-
-        function importarDatos(e) {
+        async function importarDatos(e) {
             const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async (evt) => {
+            const reader = new FileReader(); reader.onload = async (evt) => {
                 try {
                     const data = JSON.parse(evt.target.result);
-                    if (!data.cuentas || !data.movimientos) throw new Error();
-                    if (confirm('¿Deseas importar los datos? Esto reemplazará las cuentas y movimientos actuales por completo.')) {
+                    if (data.cuentas && data.movimientos) {
                         await dbClear('cuentas'); await dbClear('movimientos');
-                        for (let c of data.cuentas) { await dbPut('cuentas', c); }
-                        for (let m of data.movimientos) { await dbPut('movimientos', m); }
-                        alert('¡Base de datos migrada con éxito! La página se recargará.');
-                        window.location.reload();
+                        for (let c of data.cuentas) await dbAdd('cuentas', c);
+                        for (let m of data.movimientos) await dbAdd('movimientos', m);
+                        mostrarMensaje('Éxito', 'Estructura importada correctamente.');
+                        await cargarSelectorGlobalCuentas(); actualizarTodo();
                     }
-                } catch (err) { mostrarMensaje('Error', 'El archivo no tiene un formato válido.'); }
+                } catch { mostrarMensaje('Error', 'Archivo JSON corrupto o no válido.'); }
             };
-            reader.readAsText(file); e.target.value = '';
+            reader.readAsText(file);
         }
-        /* --- MODO NOCHE --- */
+
         function toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', isDark ? '1' : '0');
-            actualizarIconoDark(isDark);
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            document.getElementById('dark-label').innerText = isDark ? 'Modo Día' : 'Modo Noche';
+            document.getElementById('dark-toggle-thumb').style.transform = isDark ? 'translateX(16px)' : 'translateX(0px)';
+            actualizarTodo();
         }
-        function actualizarIconoDark(isDark) {
-            const thumb = document.getElementById('dark-toggle-thumb');
-            const track = document.getElementById('dark-toggle-track');
-            const label = document.getElementById('dark-label');
-            const icon = document.getElementById('dark-icon');
-            if (isDark) {
-                thumb.style.transform = 'translateX(16px)';
-                track.style.background = '#6366f1';
-                label.textContent = 'Modo Día';
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>';
-            } else {
-                thumb.style.transform = 'translateX(0)';
-                track.style.background = '#312e81';
-                label.textContent = 'Modo Noche';
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
-            }
-        }
-        // Restaurar preferencia al cargar
-        (function() {
-            if (localStorage.getItem('darkMode') === '1') {
-                document.body.classList.add('dark');
-                // defer until DOM ready
-                document.addEventListener('DOMContentLoaded', () => actualizarIconoDark(true));
-            }
-        })();
     </script>
 </body>
 </html>

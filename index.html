@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mis Finanzas</title>
     
-    <!-- Meta tags PWA -->
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,7 +13,6 @@
     <link id="manifest-link" rel="manifest" href="">
     <link class="apple-touch-icon" rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRmNDZlNSIvPjx0ZXh0IHg9IjUwIiB5PSI2NCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RjwvdGV4dD48L3N2Zz4=">
 
-    <!-- Tailwind CSS y Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -75,7 +73,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
 
-    <!-- MENÚ LATERAL -->
     <div id="sidebar" class="sidebar-closed fixed inset-y-0 left-0 w-64 bg-indigo-700 text-white shadow-xl z-50 flex flex-col">
         <div class="p-6 flex justify-between items-center border-b border-indigo-600">
             <h2 class="text-2xl font-bold">Mis Finanzas</h2>
@@ -141,10 +138,8 @@
 
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"></div>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
         
-        <!-- CABECERA GLOBAL -->
         <header class="bg-white shadow-md z-10 p-4 flex items-center justify-between gap-4 border-b border-indigo-100">
             <div class="flex items-center gap-2">
                 <button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none text-indigo-700">
@@ -167,7 +162,6 @@
 
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
             
-            <!-- VISTA: PROYECCIONES (DASHBOARD) -->
             <section id="view-dashboard" class="view-section active max-w-4xl mx-auto space-y-6">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
                      <div class="flex items-center gap-2">
@@ -328,7 +322,6 @@
                 </div>
             </section>
 
-            <!-- VISTA: FORMULARIO MOVIMIENTO -->
             <section id="view-movimiento" class="view-section max-w-xl mx-auto">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                     <h3 id="form-movimiento-title" class="text-xl font-bold mb-6 text-slate-800 border-b pb-2">Registrar Transacción</h3>
@@ -416,7 +409,6 @@
                 </div>
             </section>
 
-            <!-- VISTA: SUSCRIPCIONES -->
             <section id="view-suscripciones" class="view-section max-w-3xl mx-auto space-y-4">
                 <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white p-6 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -446,7 +438,6 @@
                 </div>
             </section>
 
-            <!-- VISTA: HISTORIAL POR MESES -->
             <section id="view-historial-meses" class="view-section max-w-3xl mx-auto space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -471,7 +462,6 @@
                 </div>
             </section>
 
-            <!-- VISTA: GESTIONAR MOVIMIENTOS ACTIVOS -->
             <section id="view-movimientos-activos" class="view-section max-w-3xl mx-auto space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div class="flex-1">
@@ -501,7 +491,6 @@
                 </div>
             </section>
 
-            <!-- VISTA: GESTIÓN DE CUENTAS -->
             <section id="view-cuentas" class="view-section max-w-2xl mx-auto">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6">
                     <h3 class="text-xl font-bold mb-4 text-slate-800">Añadir Nueva Cuenta</h3>
@@ -517,7 +506,6 @@
         </main>
     </div>
 
-    <!-- MODAL AYUDA GRÁFICOS -->
     <div id="help-modal" onclick="cerrarHelpModal(event)">
         <div class="help-card">
             <div class="flex items-start justify-between mb-3">
@@ -530,7 +518,6 @@
         </div>
     </div>
 
-    <!-- MODALES ADICIONALES -->
     <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
             <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">Mensaje</h3>
@@ -557,7 +544,6 @@
         </div>
     </div>
 
-    <!-- MOTOR DE LÓGICA JAVASCRIPT -->
     <script>
         /* --- 1. CONFIGURACIÓN PWA --- */
         const manifestData = {
@@ -640,12 +626,26 @@
             'cuentas': 'Mis Cuentas' 
         };
         
-        function navigateTo(viewId) {
+        async function navigateTo(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
             
             document.getElementById('header-title').innerText = views[viewId];
             if(!document.getElementById('sidebar').classList.contains('sidebar-closed')) toggleSidebar();
+            
+            // Ocultar opción "Todas" fuera de proyecciones
+            const optAll = document.getElementById('opt-all-cuentas');
+            if (optAll) {
+                if (viewId === 'dashboard') {
+                    optAll.style.display = 'block';
+                } else {
+                    optAll.style.display = 'none';
+                    if (cuentaActivaId === 'ALL') {
+                        const cuentas = await dbGetAll('cuentas');
+                        if (cuentas.length > 0) cambiarCuentaActiva(cuentas[0].id);
+                    }
+                }
+            }
             
             if(viewId === 'dashboard') actualizarTodo();
             if(viewId === 'suscripciones') renderSuscripciones();
@@ -674,6 +674,15 @@
                 const sel = document.getElementById(id);
                 if (!sel) return;
                 sel.innerHTML = '';
+                
+                if (id === 'global-cuenta-select') {
+                    const optAll = document.createElement('option');
+                    optAll.value = 'ALL';
+                    optAll.textContent = 'Todas las Cuentas';
+                    optAll.id = 'opt-all-cuentas';
+                    sel.appendChild(optAll);
+                }
+
                 cuentas.forEach(c => {
                     const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.nombre;
                     if(c.id === cuentaActivaId && id !== 'mov-cuenta-destino-select') opt.selected = true;
@@ -681,7 +690,10 @@
                 });
             });
             
-            // Forzar una selección secundaria por defecto en el destino si hay varias cuentas
+            if (cuentaActivaId === 'ALL') {
+                document.getElementById('global-cuenta-select').value = 'ALL';
+            }
+            
             const dest = document.getElementById('mov-cuenta-destino-select');
             if (dest && dest.options.length > 1 && dest.value == cuentaActivaId) {
                 dest.selectedIndex = (dest.selectedIndex + 1) % dest.options.length;
@@ -689,11 +701,11 @@
         }
 
         function cambiarCuentaActiva(id) {
-            cuentaActivaId = parseInt(id);
+            cuentaActivaId = id === 'ALL' ? 'ALL' : parseInt(id);
             const selects = ['global-cuenta-select', 'mov-cuenta-select'];
             selects.forEach(sid => {
                 const el = document.getElementById(sid);
-                if (el) el.value = id;
+                if (el && id !== 'ALL') el.value = id;
             });
             
             actualizarTodo();
@@ -800,6 +812,7 @@
 
         /* --- 5. VISUALIZACIÓN ANALÍTICA DE SUSCRIPCIONES --- */
         async function renderSuscripciones() {
+            if (cuentaActivaId === 'ALL') return;
             const todos = await dbGetAll('movimientos');
             const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId && m.tipo === 'gasto' && m.recurrente);
             const tbody = document.getElementById('tabla-suscripciones-body');
@@ -835,12 +848,10 @@
 
         /* --- 6. RENDERIZADO DE VISTAS COMPLEMENTARIAS --- */
         async function renderHistorialMeses() {
-            if (!cuentaActivaId) return;
+            if (!cuentaActivaId || cuentaActivaId === 'ALL') return;
             const cuenta = await dbGet('cuentas', cuentaActivaId);
             if (!cuenta) return;
             const todos = await dbGetAll('movimientos');
-            
-            // Filtrar movimientos que afecten estructuralmente a esta cuenta (como origen o como destino)
             const movs = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
 
             const tbody = document.getElementById('tabla-meses-body');
@@ -908,6 +919,7 @@
         }
 
         async function renderMovimientosActivos() {
+            if (cuentaActivaId === 'ALL') return;
             const todos = await dbGetAll('movimientos');
             const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
             const tbody = document.getElementById('tabla-movimientos-body');
@@ -1049,15 +1061,28 @@
         async function actualizarTodo() {
             if (!cuentaActivaId) return;
             
-            const cuenta = await dbGet('cuentas', cuentaActivaId);
+            let cuentasData = [];
+            if (cuentaActivaId === 'ALL') {
+                cuentasData = await dbGetAll('cuentas');
+            } else {
+                const c = await dbGet('cuentas', cuentaActivaId);
+                if (c) cuentasData.push(c);
+            }
+            if (cuentasData.length === 0) return;
+
+            // La base será la suma de todas las cuentas elegidas
+            let baseTotal = cuentasData.reduce((sum, c) => sum + (parseFloat(c.base) || 0), 0);
+
             const todos = await dbGetAll('movimientos');
-            const movs = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
+            const movs = cuentaActivaId === 'ALL' 
+                ? todos 
+                : todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
 
             const hoy = new Date();
             const mesHoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
             const labels = [];
             const data = [];
-            let acumulado = parseFloat(cuenta.base) || 0;
+            let acumulado = baseTotal;
             let saldoMesActual = null;
 
             let totalIngresos = 0;
@@ -1093,10 +1118,14 @@
                             else esValido = true;
                         }
                     }
+                    
                     if (esValido) {
                         if (m.tipo === 'transferencia') {
-                            if (m.cuentaId === cuentaActivaId) gastosMes += m.cantidad;
-                            if (m.cuentaDestinoId === cuentaActivaId) ingresosMes += m.cantidad;
+                            // En vista ALL, las transferencias no suman ni restan al total neto global.
+                            if (cuentaActivaId !== 'ALL') {
+                                if (m.cuentaId === cuentaActivaId) gastosMes += m.cantidad;
+                                if (m.cuentaDestinoId === cuentaActivaId) ingresosMes += m.cantidad;
+                            }
                         } else {
                             if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
                             else gastosMes += m.cantidad;
@@ -1108,7 +1137,8 @@
                 const variacionMes = ingresosMes - gastosMes;
                 const saldoAntesDeMes = acumulado;
 
-                if (tasaMensual > 0) {
+                // CORRECCIÓN: El interés solo devenga a partir del mes 1 (futuro)
+                if (i > 0 && tasaMensual > 0) {
                     acumulado = acumulado * (1 + tasaMensual) + variacionMes;
                 } else {
                     acumulado += variacionMes;
@@ -1216,15 +1246,20 @@
             movimientos.forEach(m => {
                 let val = 0;
                 if (m.tipo === 'transferencia') {
-                    val = m.cuentaId === cuentaActivaId ? -m.cantidad : m.cantidad;
+                    if (cuentaActivaId !== 'ALL') {
+                        val = m.cuentaId === cuentaActivaId ? -m.cantidad : m.cantidad;
+                    }
                 } else {
                     val = m.tipo === 'ingreso' ? m.cantidad : -m.cantidad;
                 }
-                wfLabels.push(m.concepto.slice(0, 12));
-                wfBase.push(val >= 0 ? acum : acum + val);
-                wfAltura.push(Math.abs(val));
-                wfColores.push(val >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(244,63,94,0.8)');
-                acum += val;
+                
+                if (val !== 0) {
+                    wfLabels.push(m.concepto.slice(0, 12));
+                    wfBase.push(val >= 0 ? acum : acum + val);
+                    wfAltura.push(Math.abs(val));
+                    wfColores.push(val >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(244,63,94,0.8)');
+                    acum += val;
+                }
             });
             wfLabels.push('Saldo final'); wfBase.push(0); wfAltura.push(acum); wfColores.push('rgba(79,70,229,0.9)');
 

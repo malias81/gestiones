@@ -69,6 +69,8 @@
         body.dark #sidebar .bg-indigo-800 { background:#12104a !important; }
         #dark-toggle-track { transition: background 0.3s; }
         #dark-toggle-thumb { transition: transform 0.3s; }
+        #dash-runway-label { line-height: 1.4; }
+        body.dark #sim-resultado .bg-white { background:#1e293b !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
@@ -105,6 +107,10 @@
             <button onclick="navigateTo('cuentas')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                 Gestionar Cuentas
+            </button>
+            <button onclick="navigateTo('simulador')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Simulador Amortización
             </button>
             
             <button id="install-btn" class="w-full mt-8 flex items-center p-3 rounded-lg bg-green-500 hover:bg-green-600 text-white text-left transition-colors shadow-md" style="display: none;">
@@ -163,6 +169,15 @@
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
             
             <section id="view-dashboard" class="view-section active max-w-4xl mx-auto space-y-6">
+                <!-- Filtro por propietario (Unidad Familiar) -->
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-500 mr-1">Vista:</span>
+                    <button id="filtro-all" onclick="cambiarFiltroPropietario('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white shadow transition-all">🏠 Familiar</button>
+                    <button id="filtro-yo" onclick="cambiarFiltroPropietario('yo')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 transition-all">👤 Yo</button>
+                    <button id="filtro-mujer" onclick="cambiarFiltroPropietario('mujer')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 transition-all">👩 Mujer</button>
+                    <button id="filtro-comun" onclick="cambiarFiltroPropietario('comun')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 transition-all">👫 Común</button>
+                </div>
+
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
                      <div class="flex items-center gap-2">
                         <label class="text-xs font-medium text-slate-500 whitespace-nowrap">Horizonte:</label>
@@ -279,6 +294,28 @@
                     </div>
                     <p class="text-sm text-slate-500">Comparativa mes a mes de entradas y salidas durante los próximos 12 meses.</p>
                     <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
+                    <!-- Tabla numérica -->
+                    <div class="mt-4 overflow-x-auto">
+                        <table class="w-full text-xs border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-400 uppercase tracking-wider font-semibold">
+                                    <th class="p-2 text-left">Mes</th>
+                                    <th class="p-2 text-right text-green-600">Ingresos</th>
+                                    <th class="p-2 text-right text-red-500">Gastos</th>
+                                    <th class="p-2 text-right text-slate-600">Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-mensual-body" class="divide-y divide-slate-100"></tbody>
+                            <tfoot>
+                                <tr class="bg-slate-50 font-bold text-xs border-t-2 border-slate-200">
+                                    <td class="p-2 text-slate-700">TOTAL AÑO</td>
+                                    <td id="total-anual-ingresos" class="p-2 text-right text-green-700">—</td>
+                                    <td id="total-anual-gastos" class="p-2 text-right text-red-600">—</td>
+                                    <td id="total-anual-neto" class="p-2 text-right">—</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
 
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -319,6 +356,15 @@
                     </div>
                     <p class="text-sm text-slate-500">Evolución mes a mes del peso de cada categoría de gasto.</p>
                     <div class="relative h-72 w-full"><canvas id="stackedAreaChart"></canvas></div>
+                </div>
+
+                <!-- Patrimonio por propietario -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-3 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Patrimonio por Propietario</h3>
+                        <button class="help-btn" onclick="abrirHelp('Patrimonio por Propietario','Desglose de los saldos base de cada cuenta agrupados por titular. Útil para ver la salud financiera individual y conjunta de la unidad familiar.')">?</button>
+                    </div>
+                    <div id="patrimonio-bloque" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
                 </div>
             </section>
 
@@ -494,15 +540,112 @@
             <section id="view-cuentas" class="view-section max-w-2xl mx-auto">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6">
                     <h3 class="text-xl font-bold mb-4 text-slate-800">Añadir Nueva Cuenta</h3>
-                    <form onsubmit="guardarNuevaCuenta(event)" class="flex flex-col sm:flex-row gap-4">
-                        <input type="text" id="nueva-cuenta-nombre" required placeholder="Nombre (ej. Cuenta de Ahorro)" class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
-                        <input type="number" step="0.01" id="nueva-cuenta-base" placeholder="Saldo Inicial (€)" class="w-full sm:w-1/3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
-                        <button type="submit" class="text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors whitespace-nowrap">Crear Cuenta</button>
+                    <form onsubmit="guardarNuevaCuenta(event)" class="space-y-3">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="nueva-cuenta-nombre" required placeholder="Nombre (ej. Cuenta de Ahorro)" class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            <input type="number" step="0.01" id="nueva-cuenta-base" placeholder="Saldo Inicial (€)" class="w-full sm:w-1/3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Propietario</label>
+                                <select id="nueva-cuenta-propietario" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 text-sm">
+                                    <option value="yo">👤 Yo</option>
+                                    <option value="mujer">👩 Mujer</option>
+                                    <option value="comun">👫 Común</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Tipo de cuenta</label>
+                                <select id="nueva-cuenta-tipo" onchange="toggleNuevaTasa()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 text-sm">
+                                    <option value="corriente">Corriente</option>
+                                    <option value="ahorro">💰 Ahorro</option>
+                                    <option value="inversion">📈 Inversión</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="nueva-tasa-container" class="hidden">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Tasa de Interés Anual (TAE %)</label>
+                            <div class="relative">
+                                <input type="number" step="0.01" min="0" id="nueva-cuenta-tasa" placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8 text-sm">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">Crear Cuenta</button>
                     </form>
                 </div>
                 <h3 class="text-lg font-bold mb-3 text-slate-700">Estructura de Cuentas del Sistema</h3>
                 <div id="lista-cuentas" class="space-y-3"></div>
             </section>
+            <section id="view-simulador" class="view-section max-w-3xl mx-auto space-y-6">
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-6 rounded-xl shadow-sm">
+                    <h3 class="text-xl font-bold">Simulador de Amortización</h3>
+                    <p class="text-indigo-200 text-sm mt-1">¿Te sale más a cuenta amortizar tu deuda o dejar el dinero generando intereses en una cuenta remunerada?</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-5">
+                    <h4 class="font-semibold text-slate-800">Datos de la Deuda</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Saldo pendiente (€)</label>
+                            <input type="number" id="sim-deuda" placeholder="50000" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de interés de la deuda (TAE %)</label>
+                            <div class="relative">
+                                <input type="number" id="sim-tipo-deuda" placeholder="3.5" step="0.01" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Meses restantes de la deuda</label>
+                            <input type="number" id="sim-meses-deuda" placeholder="120" step="1" min="1" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Importe a amortizar / invertir (€)</label>
+                            <input type="number" id="sim-capital" placeholder="10000" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-slate-800 pt-2 border-t border-slate-100">Datos de la Cuenta Remunerada</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">TAE de la cuenta / inversión (%)</label>
+                            <div class="relative">
+                                <input type="number" id="sim-tipo-ahorro" placeholder="3.0" step="0.01" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Horizonte de comparación (meses)</label>
+                            <input type="number" id="sim-horizonte" placeholder="60" step="1" min="1" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                    </div>
+                    <button onclick="calcularSimulador()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-3 transition-colors text-sm shadow-md">Calcular y Comparar</button>
+                </div>
+
+                <!-- Resultados del simulador -->
+                <div id="sim-resultado" class="hidden space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Opción A — Amortizar</p>
+                            <p class="text-2xl font-bold text-slate-800" id="sim-ahorro-intereses">—</p>
+                            <p class="text-xs text-slate-400 mt-1">Intereses que te ahorras en el horizonte</p>
+                            <div id="sim-cuota-antes" class="mt-2 text-xs text-slate-500"></div>
+                            <div id="sim-cuota-despues" class="mt-1 text-xs text-slate-500"></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Opción B — Invertir / Ahorrar</p>
+                            <p class="text-2xl font-bold text-slate-800" id="sim-ganancia-ahorro">—</p>
+                            <p class="text-xs text-slate-400 mt-1">Intereses que ganas en el horizonte</p>
+                            <div id="sim-nota-fiscal" class="mt-2 text-xs text-slate-400 italic"></div>
+                        </div>
+                    </div>
+                    <div id="sim-veredicto" class="p-5 rounded-xl text-white font-semibold text-base text-center shadow-md">—</div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                        <p class="text-xs font-semibold text-slate-500 mb-3">Evolución del diferencial acumulado (Ahorro − Amortización)</p>
+                        <div class="relative h-48"><canvas id="sim-chart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -531,9 +674,34 @@
             <h3 class="text-lg font-bold text-slate-900 mb-4">Editar Cuenta</h3>
             <input type="hidden" id="edit-cuenta-id">
             <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-            <input type="text" id="edit-cuenta-nombre" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 mb-4">
+            <input type="text" id="edit-cuenta-nombre" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 mb-3">
             <label class="block text-sm font-medium text-slate-700 mb-1">Saldo Base Actual (€)</label>
-            <input type="number" step="0.01" id="edit-cuenta-base" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 mb-6">
+            <input type="number" step="0.01" id="edit-cuenta-base" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 mb-3">
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Propietario</label>
+                    <select id="edit-cuenta-propietario" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        <option value="yo">👤 Yo</option>
+                        <option value="mujer">👩 Mujer</option>
+                        <option value="comun">👫 Común</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                    <select id="edit-cuenta-tipo" onchange="toggleEditTasa()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        <option value="corriente">Corriente</option>
+                        <option value="ahorro">💰 Ahorro</option>
+                        <option value="inversion">📈 Inversión</option>
+                    </select>
+                </div>
+            </div>
+            <div id="edit-tasa-container" class="hidden mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Tasa de Interés Anual (TAE %)</label>
+                <div class="relative">
+                    <input type="number" step="0.01" min="0" id="edit-cuenta-tasa" placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
+                    <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                </div>
+            </div>
             <div class="flex justify-between items-center">
                 <button onclick="eliminarCuenta()" class="text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium">Eliminar</button>
                 <div class="flex gap-2">
@@ -573,7 +741,7 @@
         });
 
         /* --- 2. GESTIÓN LOCAL (INDEXEDDB) --- */
-        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 1; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0;
+        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 2; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0; let filtroVistaPropietario = 'ALL';
 
         function initDB() {
             return new Promise((resolve) => {
@@ -586,6 +754,7 @@
                         const store = localDB.createObjectStore('movimientos', { keyPath: 'id', autoIncrement: true });
                         store.createIndex('cuentaId', 'cuentaId', { unique: false });
                     }
+                    // v2: no schema changes needed; propietario and tasa_interes stored as new fields on existing objects
                 };
             });
         }
@@ -623,7 +792,8 @@
             'suscripciones': 'Suscripciones y Gastos Fijos',
             'historial-meses': 'Historial por Meses', 
             'movimientos-activos': 'Movimientos Activos', 
-            'cuentas': 'Mis Cuentas' 
+            'cuentas': 'Mis Cuentas',
+            'simulador': 'Simulador de Amortización'
         };
         
         async function navigateTo(viewId) {
@@ -652,6 +822,7 @@
             if(viewId === 'historial-meses') renderHistorialMeses();
             if(viewId === 'movimientos-activos') renderMovimientosActivos();
             if(viewId === 'cuentas') renderListaCuentas();
+            if(viewId === 'simulador') { /* nada que cargar al inicio */ }
         }
 
         function toggleSidebar() {
@@ -663,11 +834,13 @@
 
         async function comprobarCuentasIniciales() {
             const c = await dbGetAll('cuentas');
-            cuentaActivaId = c.length === 0 ? await dbAdd('cuentas', { nombre: 'Cuenta Principal', base: 0 }) : c[0].id;
+            cuentaActivaId = c.length === 0 ? await dbAdd('cuentas', { nombre: 'Cuenta Principal', base: 0, propietario: 'yo', tipo: 'corriente', tasa_interes: 0 }) : c[0].id;
         }
 
         async function cargarSelectorGlobalCuentas() {
-            const cuentas = await dbGetAll('cuentas');
+            const todasCuentas = await dbGetAll('cuentas');
+            // Filtrar por propietario si hay filtro activo
+            const cuentas = filtroVistaPropietario === 'ALL' ? todasCuentas : todasCuentas.filter(c => c.propietario === filtroVistaPropietario || !c.propietario);
             const selectIds = ['global-cuenta-select', 'mov-cuenta-select', 'mov-cuenta-destino-select'];
             
             selectIds.forEach(id => {
@@ -678,7 +851,7 @@
                 if (id === 'global-cuenta-select') {
                     const optAll = document.createElement('option');
                     optAll.value = 'ALL';
-                    optAll.textContent = 'Todas las Cuentas';
+                    optAll.textContent = filtroVistaPropietario === 'ALL' ? 'Todas las Cuentas' : filtroVistaPropietario === 'yo' ? 'Mis Cuentas' : filtroVistaPropietario === 'mujer' ? 'Cuentas Mujer' : 'Cuentas Comunes';
                     optAll.id = 'opt-all-cuentas';
                     sel.appendChild(optAll);
                 }
@@ -698,6 +871,23 @@
             if (dest && dest.options.length > 1 && dest.value == cuentaActivaId) {
                 dest.selectedIndex = (dest.selectedIndex + 1) % dest.options.length;
             }
+        }
+
+        function cambiarFiltroPropietario(val) {
+            filtroVistaPropietario = val;
+            cuentaActivaId = 'ALL';
+            cargarSelectorGlobalCuentas();
+            actualizarTodo();
+            // update button styles
+            ['filtro-yo','filtro-mujer','filtro-comun','filtro-all'].forEach(id => {
+                const el = document.getElementById(id);
+                if(!el) return;
+                el.classList.remove('bg-indigo-600','text-white','shadow');
+                el.classList.add('bg-slate-100','text-slate-600');
+            });
+            const activeId = val === 'ALL' ? 'filtro-all' : val === 'yo' ? 'filtro-yo' : val === 'mujer' ? 'filtro-mujer' : 'filtro-comun';
+            const activeEl = document.getElementById(activeId);
+            if(activeEl){ activeEl.classList.add('bg-indigo-600','text-white','shadow'); activeEl.classList.remove('bg-slate-100','text-slate-600'); }
         }
 
         function cambiarCuentaActiva(id) {
@@ -1017,30 +1207,57 @@
             e.preventDefault();
             const n = document.getElementById('nueva-cuenta-nombre').value;
             const b = parseFloat(document.getElementById('nueva-cuenta-base').value) || 0;
-            await dbAdd('cuentas', { nombre: n, base: b });
-            document.getElementById('nueva-cuenta-nombre').value = ''; document.getElementById('nueva-cuenta-base').value = '';
+            const prop = document.getElementById('nueva-cuenta-propietario').value;
+            const tipo = document.getElementById('nueva-cuenta-tipo').value;
+            const tasa = parseFloat(document.getElementById('nueva-cuenta-tasa').value) || 0;
+            await dbAdd('cuentas', { nombre: n, base: b, propietario: prop, tipo: tipo, tasa_interes: tasa });
+            document.getElementById('nueva-cuenta-nombre').value = ''; document.getElementById('nueva-cuenta-base').value = ''; document.getElementById('nueva-cuenta-tasa').value = '';
             await cargarSelectorGlobalCuentas(); renderListaCuentas();
         }
 
         async function renderListaCuentas() {
             const cc = await dbGetAll('cuentas'); const l = document.getElementById('lista-cuentas'); l.innerHTML = '';
+            const propLabel = { yo: '👤 Yo', mujer: '👩 Mujer', comun: '👫 Común' };
+            const tipoLabel = { corriente: 'Corriente', ahorro: '💰 Ahorro', inversion: '📈 Inversión' };
             cc.forEach(c => {
                 const d = document.createElement('div'); d.className = 'flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer';
                 d.onclick = () => abrirModalEditarCuenta(c.id);
-                d.innerHTML = `<div><span class="font-medium text-slate-800">${c.nombre}</span><div class="text-xs text-slate-500">Base: ${c.base.toFixed(2)} €</div></div><button class="text-indigo-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>`;
+                const propBadge = propLabel[c.propietario] || '—';
+                const tipoBadge = tipoLabel[c.tipo] || 'Corriente';
+                const tasaText = (c.tipo === 'ahorro' || c.tipo === 'inversion') && c.tasa_interes > 0 ? ` · ${c.tasa_interes}% TAE` : '';
+                d.innerHTML = `<div><span class="font-medium text-slate-800">${c.nombre}</span><div class="text-xs text-slate-500 mt-0.5">${propBadge} · ${tipoBadge}${tasaText} · Base: ${(c.base||0).toFixed(2)} €</div></div><button class="text-indigo-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>`;
                 l.appendChild(d);
             });
         }
 
         async function abrirModalEditarCuenta(id) {
-            const c = await dbGet('cuentas', id); document.getElementById('edit-cuenta-id').value = c.id; document.getElementById('edit-cuenta-nombre').value = c.nombre; document.getElementById('edit-cuenta-base').value = c.base;
+            const c = await dbGet('cuentas', id); 
+            document.getElementById('edit-cuenta-id').value = c.id; 
+            document.getElementById('edit-cuenta-nombre').value = c.nombre; 
+            document.getElementById('edit-cuenta-base').value = c.base;
+            document.getElementById('edit-cuenta-propietario').value = c.propietario || 'yo';
+            document.getElementById('edit-cuenta-tipo').value = c.tipo || 'corriente';
+            document.getElementById('edit-cuenta-tasa').value = c.tasa_interes || 0;
+            toggleEditTasa();
             document.getElementById('modal-editar-cuenta').classList.remove('hidden');
         }
         function cerrarModalEditarCuenta() { document.getElementById('modal-editar-cuenta').classList.add('hidden'); }
+        function toggleEditTasa() {
+            const tipo = document.getElementById('edit-cuenta-tipo').value;
+            const el = document.getElementById('edit-tasa-container');
+            if(el) el.classList.toggle('hidden', tipo === 'corriente');
+        }
         
         async function guardarEdicionCuenta() {
             const id = parseInt(document.getElementById('edit-cuenta-id').value);
-            await dbPut('cuentas', { id: id, nombre: document.getElementById('edit-cuenta-nombre').value, base: parseFloat(document.getElementById('edit-cuenta-base').value) || 0 });
+            await dbPut('cuentas', { 
+                id: id, 
+                nombre: document.getElementById('edit-cuenta-nombre').value, 
+                base: parseFloat(document.getElementById('edit-cuenta-base').value) || 0,
+                propietario: document.getElementById('edit-cuenta-propietario').value,
+                tipo: document.getElementById('edit-cuenta-tipo').value,
+                tasa_interes: parseFloat(document.getElementById('edit-cuenta-tasa').value) || 0
+            });
             cerrarModalEditarCuenta(); await cargarSelectorGlobalCuentas(); renderListaCuentas(); if(id === cuentaActivaId) actualizarTodo();
         }
 
@@ -1061,21 +1278,27 @@
         async function actualizarTodo() {
             if (!cuentaActivaId) return;
             
+            const todasCuentas = await dbGetAll('cuentas');
             let cuentasData = [];
             if (cuentaActivaId === 'ALL') {
-                cuentasData = await dbGetAll('cuentas');
+                cuentasData = filtroVistaPropietario === 'ALL' ? todasCuentas : todasCuentas.filter(c => c.propietario === filtroVistaPropietario || !c.propietario);
             } else {
                 const c = await dbGet('cuentas', cuentaActivaId);
                 if (c) cuentasData.push(c);
             }
             if (cuentasData.length === 0) return;
 
+            const cuentasIds = new Set(cuentasData.map(c => c.id));
+            // Mapa de id -> cuenta para lookup de tipo y tasa
+            const cuentaMap = {};
+            todasCuentas.forEach(c => { cuentaMap[c.id] = c; });
+
             // La base será la suma de todas las cuentas elegidas
             let baseTotal = cuentasData.reduce((sum, c) => sum + (parseFloat(c.base) || 0), 0);
 
             const todos = await dbGetAll('movimientos');
             const movs = cuentaActivaId === 'ALL' 
-                ? todos 
+                ? todos.filter(m => cuentasIds.has(m.cuentaId) || cuentasIds.has(m.cuentaDestinoId))
                 : todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
 
             const hoy = new Date();
@@ -1098,7 +1321,11 @@
             let wfSaldoInicial = acumulado;
 
             const limiteMeses = aniosProyeccion * 12;
-            const tasaMensual = interesCompuestoMensual / 100;
+            // Interés compuesto global (del input) - si 0, se usan tasas por cuenta
+            const tasaGlobalMensual = interesCompuestoMensual / 100;
+
+            // Calcular aportaciones a ahorro/inversión mensuales (para runway ajustado)
+            let totalAportacionesAhorroMensual = 0;
 
             for (let i = 0; i <= limiteMeses; i++) {
                 let fechaActual = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
@@ -1106,6 +1333,7 @@
                 
                 let ingresosMes = 0;
                 let gastosMes = 0;
+                let ahorroMes = 0; // aportaciones a ahorro/inversión (no son gasto real)
                 const movsMes = [];
 
                 movs.forEach(m => {
@@ -1121,28 +1349,64 @@
                     
                     if (esValido) {
                         if (m.tipo === 'transferencia') {
-                            // En vista ALL, las transferencias no suman ni restan al total neto global.
                             if (cuentaActivaId !== 'ALL') {
+                                // En cuenta individual: mostrar como movimiento de liquidez
                                 if (m.cuentaId === cuentaActivaId) gastosMes += m.cantidad;
                                 if (m.cuentaDestinoId === cuentaActivaId) ingresosMes += m.cantidad;
+                            } else {
+                                // En vista ALL: las transferencias entre cuentas del mismo propietario NO afectan al neto
+                                // Solo si la cuenta destino es de ahorro/inversión, se registra como aportación (no gasto)
+                                const cuentaDest = cuentaMap[m.cuentaDestinoId];
+                                const cuentaOrig = cuentaMap[m.cuentaId];
+                                const origenEnVista = cuentasIds.has(m.cuentaId);
+                                const destinoEnVista = cuentasIds.has(m.cuentaDestinoId);
+                                if (origenEnVista && !destinoEnVista) {
+                                    // Sale de nuestras cuentas hacia otra fuera del filtro → gasto
+                                    gastosMes += m.cantidad;
+                                } else if (!origenEnVista && destinoEnVista) {
+                                    // Entra desde fuera → ingreso
+                                    ingresosMes += m.cantidad;
+                                }
+                                // Si ambos están en vista: transferencia interna, neto = 0 (ya correcto)
                             }
                         } else {
-                            if (m.tipo === 'ingreso') ingresosMes += m.cantidad;
-                            else gastosMes += m.cantidad;
+                            if (m.tipo === 'ingreso') {
+                                ingresosMes += m.cantidad;
+                            } else {
+                                // Es gasto: comprobar si va a cuenta de ahorro/inversión (traspaso)
+                                const esMov = m.esInversion || false;
+                                // Aportaciones de inversión marcadas: no suman al gasto "real"
+                                if (esMov) {
+                                    ahorroMes += m.cantidad; // contabilizado en ahorro, no en gasto para runway
+                                }
+                                gastosMes += m.cantidad;
+                            }
                         }
                         if (mesStr === mesHoyStr) movsMes.push(m);
                     }
                 });
 
-                const variacionMes = ingresosMes - gastosMes;
-                const saldoAntesDeMes = acumulado;
-
-                // CORRECCIÓN: El interés solo devenga a partir del mes 1 (futuro)
-                if (i > 0 && tasaMensual > 0) {
-                    acumulado = acumulado * (1 + tasaMensual) + variacionMes;
-                } else {
-                    acumulado += variacionMes;
+                // Sumar interés compuesto por cuenta (si la tasa global es 0, usar tasas individuales)
+                let interesDevengado = 0;
+                if (i > 0) {
+                    if (tasaGlobalMensual > 0) {
+                        interesDevengado = acumulado * tasaGlobalMensual;
+                    } else {
+                        // Interés per-cuenta de ahorro/inversión
+                        cuentasData.forEach(c => {
+                            if ((c.tipo === 'ahorro' || c.tipo === 'inversion') && c.tasa_interes > 0) {
+                                const tasaMensualCuenta = (c.tasa_interes / 100) / 12;
+                                interesDevengado += (parseFloat(c.base) || 0) * tasaMensualCuenta;
+                            }
+                        });
+                    }
                 }
+
+                const variacionMes = ingresosMes - gastosMes + interesDevengado;
+                const saldoAntesDeMes = acumulado;
+                acumulado += variacionMes;
+
+                if (i === 1) totalAportacionesAhorroMensual = ahorroMes; // mes más próximo
 
                 labels.push(mesStr);
                 data.push(acumulado);
@@ -1186,8 +1450,11 @@
             renderGauge(tasaAhorro, ingMesActual, gastMesActual);
 
             const gastoMedioMensual = totalGastos > 0 ? totalGastos / limiteMeses : 0;
+            // Runway ajustado: excluye aportaciones voluntarias a ahorro/inversión del gasto mensual
+            const gastoEsencialMensual = Math.max(0, gastoMedioMensual - totalAportacionesAhorroMensual);
             const runway = gastoMedioMensual > 0 ? Math.floor(saldoMostrar / gastoMedioMensual) : null;
-            renderRunway(runway);
+            const runwayAjustado = gastoEsencialMensual > 0 ? Math.floor(saldoMostrar / gastoEsencialMensual) : null;
+            renderRunway(runway, runwayAjustado, gastoEsencialMensual !== gastoMedioMensual);
             renderFondoEmergencia(saldoMostrar, gastoMedioMensual);
 
             const alertaEl = document.getElementById('alerta-deficit');
@@ -1204,6 +1471,9 @@
             renderWaterfall(wfSaldoInicial, wfMovs);
             renderHeatmap(heatmapData);
             renderStackedArea(stackedLabels, categoriasGasto);
+
+            // Actualizar patrimonio en bloque de cuentas por propietario
+            renderPatrimonioBloque(todasCuentas);
         }
 
         /* --- 9. RENDERIZACIÓN DE COMPONENTES DE GRÁFICOS (CHART.JS) --- */
@@ -1233,9 +1503,50 @@
             const ctx = document.getElementById('barChart').getContext('2d'); if (currentBarChart) currentBarChart.destroy();
             currentBarChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: labels, datasets: [{ label: 'Ingresos (€)', data: ingresos, backgroundColor: 'rgba(34, 197, 94, 0.75)', borderColor: '#16a34a', borderWidth: 1.5 }, { label: 'Gastos (€)', data: gastos, backgroundColor: 'rgba(244, 63, 94, 0.75)', borderColor: '#e11d48', borderWidth: 1.5 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                data: { labels: labels, datasets: [
+                    { label: 'Ingresos (€)', data: ingresos, backgroundColor: 'rgba(34, 197, 94, 0.75)', borderColor: '#16a34a', borderWidth: 1.5 },
+                    { label: 'Gastos (€)', data: gastos, backgroundColor: 'rgba(244, 63, 94, 0.75)', borderColor: '#e11d48', borderWidth: 1.5 }
+                ]},
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        datalabels: false,
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} €`
+                            }
+                        }
+                    }
+                }
             });
+
+            // Rellenar tabla numérica
+            const tbody = document.getElementById('tabla-mensual-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            let sumIng = 0, sumGas = 0;
+            labels.forEach((mes, i) => {
+                const ing = ingresos[i] || 0;
+                const gas = gastos[i] || 0;
+                const neto = ing - gas;
+                sumIng += ing; sumGas += gas;
+                const netoColor = neto >= 0 ? 'text-green-600' : 'text-red-600';
+                const netoSigno = neto >= 0 ? '+' : '';
+                tbody.innerHTML += `<tr class="hover:bg-slate-50">
+                    <td class="p-2 font-medium text-slate-700">${mes}</td>
+                    <td class="p-2 text-right text-green-600 font-medium">+${ing.toFixed(2)} €</td>
+                    <td class="p-2 text-right text-red-500 font-medium">-${gas.toFixed(2)} €</td>
+                    <td class="p-2 text-right font-bold ${netoColor}">${netoSigno}${neto.toFixed(2)} €</td>
+                </tr>`;
+            });
+            const netoAnual = sumIng - sumGas;
+            const netoAnualColor = netoAnual >= 0 ? 'text-green-700' : 'text-red-700';
+            document.getElementById('total-anual-ingresos').textContent = `+${sumIng.toFixed(2)} €`;
+            document.getElementById('total-anual-gastos').textContent = `-${sumGas.toFixed(2)} €`;
+            const netoEl = document.getElementById('total-anual-neto');
+            netoEl.textContent = `${netoAnual >= 0 ? '+' : ''}${netoAnual.toFixed(2)} €`;
+            netoEl.className = `p-2 text-right font-bold ${netoAnualColor}`;
         }
 
         function renderWaterfall(saldoInicial, movimientos) {
@@ -1279,11 +1590,17 @@
             document.getElementById('dash-ahorro-label').textContent = ingresos === 0 ? 'Sin ingresos' : `Ahorrado: ${(ingresos - gastos).toFixed(0)} €`;
         }
 
-        function renderRunway(meses) {
+        function renderRunway(meses, mesesAjustados, hayAjuste) {
             const valor = document.getElementById('dash-runway-valor'); const barra = document.getElementById('dash-runway-barra');
+            const label = document.getElementById('dash-runway-label');
             if (meses === null || meses < 0) { valor.textContent = '∞'; barra.style.width = '100%'; barra.style.background = '#22c55e'; return; }
             valor.textContent = meses; barra.style.width = Math.min(100, (meses / 24) * 100) + '%';
             barra.style.background = meses >= 6 ? '#22c55e' : meses >= 3 ? '#f59e0b' : '#ef4444';
+            if (hayAjuste && mesesAjustados !== null && mesesAjustados !== meses) {
+                label.innerHTML = `Sin ingresos, aguantas este tiempo<br><span class="text-xs font-bold text-indigo-500">Ajustado (sin ahorro voluntario): ${mesesAjustados} meses</span>`;
+            } else {
+                label.textContent = 'Sin ingresos, aguantas este tiempo';
+            }
         }
 
         function renderFondoEmergencia(saldo, gastoMedioMensual) {
@@ -1343,6 +1660,134 @@
                 } catch { mostrarMensaje('Error', 'Archivo JSON corrupto o no válido.'); }
             };
             reader.readAsText(file);
+        }
+
+        function toggleNuevaTasa() {
+            const tipo = document.getElementById('nueva-cuenta-tipo').value;
+            const el = document.getElementById('nueva-tasa-container');
+            if(el) el.classList.toggle('hidden', tipo === 'corriente');
+        }
+
+        function renderPatrimonioBloque(cuentas) {
+            const el = document.getElementById('patrimonio-bloque');
+            if(!el) return;
+            const propietarios = [
+                { key: 'yo', label: '👤 Yo', color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+                { key: 'mujer', label: '👩 Mujer', color: 'bg-pink-50 border-pink-200 text-pink-700' },
+                { key: 'comun', label: '👫 Común', color: 'bg-amber-50 border-amber-200 text-amber-700' }
+            ];
+            el.innerHTML = propietarios.map(p => {
+                const cuentasProp = cuentas.filter(c => (c.propietario || 'yo') === p.key);
+                const total = cuentasProp.reduce((sum, c) => sum + (parseFloat(c.base)||0), 0);
+                const cuentasAhorro = cuentasProp.filter(c => c.tipo === 'ahorro' || c.tipo === 'inversion');
+                const tasaMedia = cuentasAhorro.length > 0 ? (cuentasAhorro.reduce((s,c) => s+(parseFloat(c.tasa_interes)||0),0)/cuentasAhorro.length) : 0;
+                return `<div class="p-4 rounded-xl border ${p.color} flex flex-col gap-1">
+                    <p class="text-sm font-semibold">${p.label}</p>
+                    <p class="text-2xl font-bold">${total.toFixed(2)} €</p>
+                    <p class="text-xs opacity-70">${cuentasProp.length} cuenta${cuentasProp.length!==1?'s':''}</p>
+                    ${tasaMedia > 0 ? `<p class="text-xs font-medium">TAE media: ${tasaMedia.toFixed(2)}%</p>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        let simChart = null;
+        function calcularSimulador() {
+            const deuda = parseFloat(document.getElementById('sim-deuda').value) || 0;
+            const tipoDeuda = (parseFloat(document.getElementById('sim-tipo-deuda').value) || 0) / 100;
+            const mesesDeuda = parseInt(document.getElementById('sim-meses-deuda').value) || 0;
+            const capital = parseFloat(document.getElementById('sim-capital').value) || 0;
+            const tipoAhorro = (parseFloat(document.getElementById('sim-tipo-ahorro').value) || 0) / 100;
+            const horizonte = parseInt(document.getElementById('sim-horizonte').value) || 12;
+
+            if (!capital || !tipoDeuda || !mesesDeuda || !deuda) {
+                mostrarMensaje('Datos incompletos', 'Rellena todos los campos de la deuda y el capital a amortizar/invertir.'); return;
+            }
+
+            // Cuota mensual sin amortizar (préstamo francés)
+            const rm = tipoDeuda / 12;
+            const cuotaOriginal = rm > 0 ? (deuda * rm) / (1 - Math.pow(1 + rm, -mesesDeuda)) : deuda / mesesDeuda;
+
+            // Intereses pagados en horizonte (sin amortizar)
+            let saldoSin = deuda;
+            let interesesSin = 0;
+            for(let i = 0; i < Math.min(horizonte, mesesDeuda); i++) {
+                const interesMes = saldoSin * rm;
+                interesesSin += interesMes;
+                saldoSin = saldoSin - (cuotaOriginal - interesMes);
+            }
+
+            // Cuota mensual CON amortización
+            const deudaAmort = Math.max(0, deuda - capital);
+            const cuotaAmort = rm > 0 ? (deudaAmort * rm) / (1 - Math.pow(1 + rm, -mesesDeuda)) : deudaAmort / mesesDeuda;
+            let saldoCon = deudaAmort;
+            let interesesCon = 0;
+            for(let i = 0; i < Math.min(horizonte, mesesDeuda); i++) {
+                const interesMes = saldoCon * rm;
+                interesesCon += interesMes;
+                saldoCon = saldoCon - (cuotaAmort - interesMes);
+            }
+
+            const ahorroIntereses = interesesSin - interesesCon;
+
+            // Ganancia cuenta remunerada (interés compuesto mensual)
+            const rmAhorro = tipoAhorro / 12;
+            let capitalAhorro = capital;
+            let interesesTotalesAhorro = 0;
+            for(let i = 0; i < horizonte; i++) {
+                const intMes = capitalAhorro * rmAhorro;
+                interesesTotalesAhorro += intMes;
+                capitalAhorro += intMes;
+            }
+            // Retención fiscal ~19% sobre rendimientos del capital
+            const gananciaNetaAhorro = interesesTotalesAhorro * 0.81;
+
+            document.getElementById('sim-ahorro-intereses').textContent = ahorroIntereses.toFixed(2) + ' €';
+            document.getElementById('sim-ganancia-ahorro').textContent = gananciaNetaAhorro.toFixed(2) + ' € (neto)';
+            document.getElementById('sim-cuota-antes').textContent = `Cuota actual: ${cuotaOriginal.toFixed(2)} €/mes`;
+            document.getElementById('sim-cuota-despues').textContent = `Cuota tras amortizar: ${cuotaAmort.toFixed(2)} €/mes`;
+            document.getElementById('sim-nota-fiscal').textContent = 'Rendimiento neto estimado tras retención fiscal ~19%';
+
+            const veredicto = document.getElementById('sim-veredicto');
+            const diferencia = ahorroIntereses - gananciaNetaAhorro;
+            if (Math.abs(diferencia) < 50) {
+                veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-amber-500 text-white';
+                veredicto.textContent = `⚖️ Prácticamente indiferente (diferencia: ${Math.abs(diferencia).toFixed(2)} €). Decide según liquidez o tranquilidad emocional.`;
+            } else if (diferencia > 0) {
+                veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-green-600 text-white';
+                veredicto.textContent = `✅ Conviene AMORTIZAR. Te ahorras ${diferencia.toFixed(2)} € más que invirtiendo.`;
+            } else {
+                veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-indigo-600 text-white';
+                veredicto.textContent = `📈 Conviene INVERTIR/AHORRAR. Ganas ${Math.abs(diferencia).toFixed(2)} € más que amortizando.`;
+            }
+
+            // Gráfico de evolución diferencial
+            const labelsChart = [];
+            const dataAmort = [];
+            const dataAhorro = [];
+            let acumAmort = 0; let acumAhorro = 0; let saldoA = deuda; let saldoB = deudaAmort; let capAh = capital;
+            for(let i = 1; i <= horizonte; i++) {
+                const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                labelsChart.push(nm[(i-1)%12]);
+                const intA = saldoA * rm; acumAmort += intA; saldoA = Math.max(0, saldoA - (cuotaOriginal - intA));
+                const intB = saldoB * rm; saldoB = Math.max(0, saldoB - (cuotaAmort - intB));
+                const ahorradoEstesMes = intA - intB; acumAmort = interesesSin * (i/horizonte) - interesesCon * (i/horizonte);
+                const intAh = capAh * rmAhorro; capAh += intAh; acumAhorro = (capAh - capital) * 0.81;
+                dataAmort.push(parseFloat(acumAmort.toFixed(2)));
+                dataAhorro.push(parseFloat(acumAhorro.toFixed(2)));
+            }
+
+            const ctx = document.getElementById('sim-chart').getContext('2d');
+            if(simChart) simChart.destroy();
+            simChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labelsChart, datasets: [
+                    { label: 'Ahorro intereses (amortizar)', data: dataAmort, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.3, borderWidth: 2 },
+                    { label: 'Ganancia neta (invertir)', data: dataAhorro, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, borderWidth: 2 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
+            });
+
+            document.getElementById('sim-resultado').classList.remove('hidden');
         }
 
         function toggleDarkMode() {

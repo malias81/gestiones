@@ -410,8 +410,9 @@
                                 <input type="text" id="mov-concepto" required placeholder="Ej. Mercadona, Factura Luz, Netflix..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
                             </div>
                             <div class="col-span-2 sm:col-span-1">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Cantidad (€)</label>
-                                <input type="number" step="0.01" id="mov-cantidad" required placeholder="0.00" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                                <label id="label-cantidad" class="block text-sm font-medium text-slate-700 mb-1">Cantidad (€)</label>
+                                <input type="number" step="0.01" id="mov-cantidad" required placeholder="0.00" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5" oninput="actualizarLabelCantidad()">
+                                <p id="preview-mensual" class="hidden mt-1 text-xs text-indigo-600 font-medium"></p>
                             </div>
                             <div class="col-span-2 sm:col-span-1">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Mes de inicio</label>
@@ -419,14 +420,37 @@
                             </div>
                         </div>
                         <div class="pt-2 border-t border-slate-100">
-                            <label class="flex items-center cursor-pointer">
-                                <div class="relative">
-                                    <input type="checkbox" id="mov-recurrente" onchange="toggleFechaLimite()" class="sr-only">
-                                    <div class="block bg-slate-200 w-10 h-6 rounded-full transition-colors toggle-bg"></div>
-                                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform toggle-dot"></div>
+                            <label class="flex items-center cursor-pointer gap-3">
+                                <div class="relative w-10 h-6 flex-shrink-0">
+                                    <input type="checkbox" id="mov-recurrente" onchange="toggleFechaLimite()" class="sr-only peer">
+                                    <div class="w-10 h-6 bg-slate-200 peer-checked:bg-indigo-600 rounded-full transition-colors duration-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 peer-checked:translate-x-4"></div>
                                 </div>
-                                <div class="ml-3 text-sm font-medium text-slate-700">Es un movimiento recurrente (mensual)</div>
+                                <div class="text-sm font-medium text-slate-700">Es un movimiento recurrente</div>
                             </label>
+                        </div>
+                        <!-- Periodicidad: solo visible si es recurrente -->
+                        <div id="container-periodicidad" class="hidden bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                            <p class="text-xs font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Periodicidad</p>
+                            <div class="flex gap-3">
+                                <label class="flex-1 flex items-center gap-2 cursor-pointer p-2.5 rounded-lg border bg-white has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 transition-colors">
+                                    <input type="radio" name="periodicidad" value="mensual" id="period-mensual" checked class="w-4 h-4 text-indigo-600" onchange="actualizarLabelCantidad()">
+                                    <div>
+                                        <span class="block text-sm font-medium text-slate-800">Mensual</span>
+                                        <span class="block text-xs text-slate-400">Se aplica cada mes</span>
+                                    </div>
+                                </label>
+                                <label class="flex-1 flex items-center gap-2 cursor-pointer p-2.5 rounded-lg border bg-white has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 transition-colors">
+                                    <input type="radio" name="periodicidad" value="anual" id="period-anual" class="w-4 h-4 text-indigo-600" onchange="actualizarLabelCantidad()" >
+                                    <div>
+                                        <span class="block text-sm font-medium text-slate-800">Anual</span>
+                                        <span class="block text-xs text-slate-400">Se divide entre 12</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div id="hint-anual" class="hidden mt-2 text-xs text-indigo-600 bg-white border border-indigo-100 rounded p-2">
+                                💡 Introduce el importe <strong>anual total</strong>. Se dividirá entre 12 automáticamente para el cálculo mensual.
+                            </div>
                         </div>
                         <div id="container-inversion" class="pt-2 border-t border-slate-100">
                             <label class="flex items-center cursor-pointer gap-3">
@@ -937,7 +961,38 @@
         function toggleFechaLimite() {
             const rec = document.getElementById('mov-recurrente').checked;
             document.getElementById('container-fecha-limite').classList.toggle('hidden', !rec);
-            if (!rec) { document.getElementById('mov-tiene-limite').checked = false; toggleInputLimite(); }
+            document.getElementById('container-periodicidad').classList.toggle('hidden', !rec);
+            if (!rec) {
+                document.getElementById('mov-tiene-limite').checked = false;
+                toggleInputLimite();
+                document.getElementById('period-mensual').checked = true;
+                document.getElementById('hint-anual').classList.add('hidden');
+                document.getElementById('preview-mensual').classList.add('hidden');
+            }
+            actualizarLabelCantidad();
+        }
+
+        function actualizarLabelCantidad() {
+            const rec = document.getElementById('mov-recurrente').checked;
+            const esAnual = rec && document.getElementById('period-anual') && document.getElementById('period-anual').checked;
+            const hintEl = document.getElementById('hint-anual');
+            const previewEl = document.getElementById('preview-mensual');
+            const labelEl = document.getElementById('label-cantidad');
+
+            if (hintEl) hintEl.classList.toggle('hidden', !esAnual);
+            if (labelEl) labelEl.textContent = esAnual ? 'Cantidad ANUAL (€)' : 'Cantidad (€)';
+
+            if (esAnual && previewEl) {
+                const val = parseFloat(document.getElementById('mov-cantidad').value) || 0;
+                if (val > 0) {
+                    previewEl.textContent = `= ${(val / 12).toFixed(2)} €/mes`;
+                    previewEl.classList.remove('hidden');
+                } else {
+                    previewEl.classList.add('hidden');
+                }
+            } else if (previewEl) {
+                previewEl.classList.add('hidden');
+            }
         }
         function toggleInputLimite() {
             const tl = document.getElementById('mov-tiene-limite').checked;
@@ -954,6 +1009,7 @@
             document.getElementById('submit-mov-btn').innerText = "Guardar Movimiento";
             document.getElementById('cancel-edit-btn').classList.add('hidden');
             const d = new Date(); document.getElementById('mov-fecha-inicio').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('period-mensual').checked = true;
             adaptarFormularioPorTipo();
             toggleFechaLimite();
         }
@@ -970,15 +1026,22 @@
                 return;
             }
 
+            const recurrente = document.getElementById('mov-recurrente').checked;
+            const periodicidad = recurrente && document.getElementById('period-anual').checked ? 'anual' : 'mensual';
+            const cantidadInput = parseFloat(document.getElementById('mov-cantidad').value);
+            const cantidadMensual = periodicidad === 'anual' ? cantidadInput / 12 : cantidadInput;
+
             const data = {
                 cuentaId: cuentaId,
                 cuentaDestinoId: cuentaDestinoId,
                 tipo: tipo,
                 motivo: document.getElementById('mov-motivo').value,
                 concepto: document.getElementById('mov-concepto').value,
-                cantidad: parseFloat(document.getElementById('mov-cantidad').value),
+                cantidad: cantidadMensual,          // siempre almacenamos el mensual
+                cantidadOriginal: cantidadInput,    // guardamos el importe tal como lo introdujo el usuario
+                periodicidad: periodicidad,         // 'mensual' | 'anual'
                 fechaInicio: document.getElementById('mov-fecha-inicio').value,
-                recurrente: document.getElementById('mov-recurrente').checked,
+                recurrente: recurrente,
                 esInversion: tipo !== 'transferencia' ? document.getElementById('mov-inversion').checked : false,
                 tieneLimite: document.getElementById('mov-tiene-limite').checked,
                 fechaFin: document.getElementById('mov-fecha-fin').value || null
@@ -1012,19 +1075,33 @@
             document.getElementById('suscripciones-vacio').classList.toggle('hidden', filtrados.length > 0);
 
             filtrados.forEach(m => {
-                acumuladoMensual += m.cantidad;
+                acumuladoMensual += m.cantidad; // cantidad ya es mensual
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
+
+                const esAnual = m.periodicidad === 'anual';
+                const importeOriginal = esAnual ? (m.cantidadOriginal ?? m.cantidad * 12) : m.cantidad;
                 
-                let vigencia = `Mensual desde ${m.fechaInicio}`;
+                let vigencia = `desde ${m.fechaInicio}`;
                 if (m.tieneLimite && m.fechaFin) vigencia += ` hasta ${m.fechaFin}`;
+
+                const periodBadge = esAnual
+                    ? `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-700 font-medium">📅 Anual</span>`
+                    : `<span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">🔁 Mensual</span>`;
 
                 tr.innerHTML = `
                     <td class="p-4">
                         <div class="font-semibold text-slate-800">${m.concepto}</div>
-                        <div class="text-xs text-slate-400">${m.motivo}</div>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span class="text-xs text-slate-400">${m.motivo}</span>
+                            ${periodBadge}
+                            ${m.esInversion ? '<span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-700 font-medium">📈 Inversión</span>' : ''}
+                        </div>
                     </td>
-                    <td class="p-4 font-bold text-red-600">-${m.cantidad.toFixed(2)} €</td>
+                    <td class="p-4">
+                        <div class="font-bold text-red-600">-${m.cantidad.toFixed(2)} €<span class="text-xs font-normal text-slate-400">/mes</span></div>
+                        ${esAnual ? `<div class="text-xs text-slate-400 mt-0.5">Total anual: ${importeOriginal.toFixed(2)} €</div>` : ''}
+                    </td>
                     <td class="p-4 text-xs text-slate-500">${vigencia}</td>
                     <td class="p-4 text-right">
                         <button onclick="editarMovimientoInPlace(${m.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Editar</button>
@@ -1124,8 +1201,19 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
                 
-                let vigencia = m.recurrente ? `Mensual desde ${m.fechaInicio}` : `Único en ${m.fechaInicio}`;
-                if (m.recurrente && m.tieneLimite) vigencia += ` hasta ${m.fechaFin}`;
+                let vigencia = '';
+                const esAnual = m.periodicidad === 'anual';
+                const importeOriginal = esAnual ? (m.cantidadOriginal ?? m.cantidad * 12) : m.cantidad;
+
+                if (!m.recurrente) {
+                    vigencia = `<span class="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-500 font-medium">⚡ Puntual</span> ${m.fechaInicio}`;
+                } else {
+                    const periodBadge = esAnual
+                        ? `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-700 font-medium">📅 Anual</span>`
+                        : `<span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">🔁 Mensual</span>`;
+                    vigencia = `${periodBadge} desde ${m.fechaInicio}`;
+                    if (m.tieneLimite && m.fechaFin) vigencia += ` hasta ${m.fechaFin}`;
+                }
 
                 let BadgeTipo = '';
                 let visualImporte = '';
@@ -1140,7 +1228,12 @@
                     }
                 } else {
                     BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full ${m.tipo === 'ingreso' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}">${m.tipo.toUpperCase()}</span>`;
-                    visualImporte = `<td class="p-4 font-bold ${m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}">${m.tipo === 'ingreso' ? '+' : '-'}${m.cantidad.toFixed(2)} €</td>`;
+                    const signo = m.tipo === 'ingreso' ? '+' : '-';
+                    const colorImporte = m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600';
+                    const desglose = esAnual
+                        ? `<div class="text-xs text-slate-400 mt-0.5">${signo}${m.cantidad.toFixed(2)} €/mes · Anual: ${importeOriginal.toFixed(2)} €</div>`
+                        : '';
+                    visualImporte = `<td class="p-4"><div class="font-bold ${colorImporte}">${signo}${m.cantidad.toFixed(2)} €</div>${desglose}</td>`;
                 }
 
                 let infoConcepto = m.tipo === 'transferencia' ? `Hacia: ${nombreCuenta(m.cuentaDestinoId)}` : m.motivo;
@@ -1179,12 +1272,20 @@
 
             document.getElementById('mov-motivo').value = m.motivo;
             document.getElementById('mov-concepto').value = m.concepto;
-            document.getElementById('mov-cantidad').value = m.cantidad;
+            // Si es anual, mostramos el importe original anual en el campo
+            const esAnual = m.periodicidad === 'anual';
+            document.getElementById('mov-cantidad').value = esAnual ? (m.cantidadOriginal ?? m.cantidad * 12) : m.cantidad;
             document.getElementById('mov-fecha-inicio').value = m.fechaInicio;
             document.getElementById('mov-recurrente').checked = m.recurrente;
             document.getElementById('mov-inversion').checked = m.esInversion || false;
             
             toggleFechaLimite();
+            // Restaurar periodicidad
+            if (m.recurrente) {
+                const periodEl = document.getElementById(esAnual ? 'period-anual' : 'period-mensual');
+                if (periodEl) periodEl.checked = true;
+            }
+            actualizarLabelCantidad();
             document.getElementById('mov-tiene-limite').checked = m.tieneLimite;
             toggleInputLimite();
             if(m.tieneLimite) document.getElementById('mov-fecha-fin').value = m.fechaFin;

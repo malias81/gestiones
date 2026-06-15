@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mis Finanzas</title>
+    
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Finanzas">
+    
+    <link id="manifest-link" rel="manifest" href="">
+    <link class="apple-touch-icon" rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRmNDZlNSIvPjx0ZXh0IHg9IjUwIiB5PSI2NCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RjwvdGV4dD48L3N2Zz4=">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-open { transform: translateX(0); }
+        .sidebar-closed { transform: translateX(-100%); }
+        .gauge-wrap { position: relative; width: 180px; height: 100px; margin: 0 auto; }
+        .gauge-bg { fill: none; stroke: #e2e8f0; stroke-width: 18; stroke-linecap: round; }
+        .gauge-fill { fill: none; stroke-width: 18; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s; }
+        .heatmap-cell { border-radius: 3px; transition: opacity 0.2s; cursor: default; }
+        .heatmap-cell:hover { opacity: 0.75; }
+        .help-btn { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#e0e7ff; color:#4f46e5; font-size:11px; font-weight:700; cursor:pointer; border:none; flex-shrink:0; transition:background 0.2s; }
+        .help-btn:hover { background:#c7d2fe; }
+        .alerta-deficit { display:none; animation: fadeIn 0.4s ease; }
+        .alerta-deficit.visible { display:flex; }
+        #help-modal { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+        #help-modal.open { display:flex; }
+        #help-modal .help-card { background:#fff; border-radius:1rem; padding:1.5rem; max-width:380px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.18); }
+        
+        /* MODO NOCHE */
+        body.dark { background:#0f172a; color:#e2e8f0; }
+        body.dark header { background:#1e293b; border-color:#334155; }
+        body.dark main { background:#0f172a; }
+        body.dark .bg-white { background:#1e293b !important; }
+        body.dark .bg-slate-50 { background:#0f172a !important; }
+        body.dark .bg-slate-100 { background:#334155 !important; }
+        body.dark .border-slate-100 { border-color:#334155 !important; }
+        body.dark .border-slate-200 { border-color:#475569 !important; }
+        body.dark .text-slate-800, body.dark .text-slate-900 { color:#f1f5f9 !important; }
+        body.dark .text-slate-700 { color:#cbd5e1 !important; }
+        body.dark .text-slate-600 { color:#94a3b8 !important; }
+        body.dark .text-slate-500 { color:#64748b !important; }
+        body.dark .text-slate-400 { color:#475569 !important; }
+        body.dark .bg-slate-50.border { background:#1e293b !important; }
+        body.dark input, body.dark select, body.dark textarea { background:#334155 !important; border-color:#475569 !important; color:#f1f5f9 !important; }
+        body.dark .gauge-bg { stroke: #334155; }
+        body.dark .help-btn { background:#312e81; color:#a5b4fc; }
+        body.dark .help-btn:hover { background:#3730a3; }
+        body.dark #help-modal .help-card { background:#1e293b; }
+        body.dark #help-modal .help-card h3 { color:#f1f5f9; }
+        body.dark #help-modal .help-card p { color:#94a3b8; }
+        body.dark .divide-y > tr { border-color:#334155; }
+        body.dark table thead tr { background:#0f172a !important; }
+        body.dark .hover\:bg-slate-50:hover { background:#334155 !important; }
+        body.dark .alerta-deficit { background:#450a0a; border-color:#7f1d1d; }
+        body.dark .alerta-deficit p.text-red-800 { color:#fca5a5 !important; }
+        body.dark .alerta-deficit p.text-red-600 { color:#f87171 !important; }
+        body.dark #sidebar { background:#1e1b4b; }
+        body.dark #sidebar .border-indigo-600 { border-color:#312e81; }
+        body.dark #sidebar .bg-indigo-800 { background:#12104a !important; }
+        #dark-toggle-track { transition: background 0.3s; }
+        #dark-toggle-thumb { transition: transform 0.3s; }
+        #dash-runway-label { line-height: 1.4; }
+        body.dark #sim-resultado .bg-white { background:#1e293b !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
+
+    <div id="sidebar" class="sidebar-closed fixed inset-y-0 left-0 w-64 bg-indigo-700 text-white shadow-xl z-50 flex flex-col">
+        <div class="p-6 flex justify-between items-center border-b border-indigo-600">
+            <h2 class="text-2xl font-bold">Mis Finanzas</h2>
+            <button onclick="toggleSidebar()" class="p-2 bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="navigateTo('dashboard')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                Proyecciones
+            </button>
+            <button onclick="navigateTo('movimiento')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Nuevo Movimiento
+            </button>
+            <button onclick="navigateTo('suscripciones')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Suscripciones
+            </button>
+            <button onclick="navigateTo('historial-meses')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Historial por Meses
+            </button>
+            <button onclick="navigateTo('movimientos-activos')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                Movimientos Activos
+            </button>
+            <button onclick="navigateTo('cuentas')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                Gestionar Cuentas
+            </button>
+            <button onclick="navigateTo('simulador')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Simulador Amortización
+            </button>
+            <button onclick="navigateTo('sobres')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                Sobres Virtuales
+            </button>
+            
+            <button id="install-btn" class="w-full mt-8 flex items-center p-3 rounded-lg bg-green-500 hover:bg-green-600 text-white text-left transition-colors shadow-md" style="display: none;">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Instalar App
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-indigo-600 space-y-1 bg-indigo-800">
+            <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
+                <div class="flex items-center">
+                    <svg id="dark-icon" class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <span id="dark-label">Modo Noche</span>
+                </div>
+                <div class="relative w-10 h-6 flex-shrink-0">
+                    <div id="dark-toggle-track" class="w-full h-full rounded-full bg-indigo-900"></div>
+                    <div id="dark-toggle-thumb" class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow"></div>
+                </div>
+            </button>
+            <button onclick="exportarDatos()" class="w-full flex items-center p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
+                <svg class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Exportar Datos
+            </button>
+            <button onclick="document.getElementById('import-input').click()" class="w-full flex items-center p-2.5 rounded-lg hover:bg-indigo-600 text-left transition-colors text-sm font-medium">
+                <svg class="w-4 h-4 mr-3 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Importar Datos
+            </button>
+            <input type="file" id="import-input" class="hidden" accept=".json" onchange="importarDatos(event)">
+        </div>
+    </div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"></div>
+
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <header class="bg-white shadow-md z-10 p-4 flex items-center justify-between gap-4 border-b border-indigo-100">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none text-indigo-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h1 id="header-title" class="text-lg font-bold text-indigo-900 tracking-tight hidden sm:block">Proyecciones</h1>
+            </div>
+            
+            <div class="flex-1 max-w-xs sm:w-64">
+                <div class="relative">
+                    <select id="global-cuenta-select" onchange="cambiarCuentaActiva(this.value)" 
+						class="w-full bg-indigo-50 border-2 border-indigo-200 text-indigo-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 font-bold shadow-sm transition-all appearance-none cursor-pointer">
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-indigo-600">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
+            
+            <section id="view-dashboard" class="view-section active max-w-4xl mx-auto space-y-6">
+                <!-- Filtro por propietario (Unidad Familiar) -->
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-500 mr-1">Vista:</span>
+                    <button id="filtro-all" onclick="cambiarFiltroPropietario('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white shadow transition-all">🏠 Familiar</button>
+                    <button id="filtro-yo" onclick="cambiarFiltroPropietario('yo')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 transition-all">👤 Yo</button>
+                    <button id="filtro-mujer" onclick="cambiarFiltroPropietario('mujer')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 transition-all">👩 Mujer</button>
+                    <button id="filtro-comun" onclick="cambiarFiltroPropietario('comun')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 transition-all">👫 Común</button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center gap-4">
+                     <div class="flex items-center gap-2">
+                        <label class="text-xs font-medium text-slate-500 whitespace-nowrap">Horizonte:</label>
+                        <select id="proyeccion-anios-select" onchange="cambiarAniosProyeccion(this.value)" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-medium w-32">
+                            <option value="1">1 Año</option> <option value="2">2 Años</option> <option value="3">3 Años</option> <option value="4">4 Años</option>
+                            <option value="5" selected>5 Años</option> <option value="6">6 Años</option> <option value="7">7 Años</option> <option value="8">8 Años</option>
+                            <option value="9">9 Años</option> <option value="10">10 Años</option> <option value="11">11 Años</option> <option value="12">12 Años</option>
+                            <option value="13">13 Años</option> <option value="14">14 Años</option> <option value="15">15 Años</option> <option value="16">16 Años</option>
+                            <option value="17">17 Años</option> <option value="18">18 Años</option> <option value="19">19 Años</option> <option value="20">20 Años</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="interes-compuesto-input" class="text-xs font-medium text-slate-500 whitespace-nowrap">Interés compuesto:</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="interes-compuesto-input" min="0" max="100" step="0.01" value="0" placeholder="0.00"
+                                oninput="cambiarInteresCompuesto(this.value)"
+                                class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-medium w-24 pr-7">
+                            <span class="absolute right-2.5 text-slate-400 text-sm font-medium pointer-events-none">%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Saldo Disponible (destacado) -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-indigo-100 text-xs font-medium">Saldo Disponible Real</p>
+                                <button class="help-btn" style="background:rgba(255,255,255,0.2);color:white" onclick="abrirHelp('Saldo Disponible Real','Tu saldo real menos lo que ya deberías tener apartado en sobres virtuales para pagos anuales. Este es el dinero que REALMENTE puedes gastar sin sorpresas futuras.')">?</button>
+                            </div>
+                            <h3 id="dash-saldo-disponible" class="text-3xl font-bold tracking-tight">0.00 €</h3>
+                            <p class="text-indigo-200 text-xs mt-1" id="dash-saldo-disponible-label">= Saldo Real − Comprometido</p>
+                        </div>
+                        <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    </div>
+                    <!-- Saldo Real -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <p class="text-xs font-medium text-slate-500 mb-1">Saldo Real (cuenta proyectada)</p>
+                        <h3 id="dash-saldo-actual" class="text-2xl font-bold text-slate-700">0.00 €</h3>
+                        <p class="text-xs text-slate-400 mt-1">Flujo de caja del mes actual</p>
+                    </div>
+                    <!-- Comprometido en sobres -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-amber-100 flex flex-col justify-between cursor-pointer hover:border-amber-300 transition-colors" onclick="navigateTo('sobres')">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-xs font-medium text-amber-700">Comprometido en Sobres</p>
+                            <span id="dash-sobres-semaforo" class="text-base">🟢</span>
+                        </div>
+                        <h3 id="dash-saldo-comprometido" class="text-2xl font-bold text-amber-600">0.00 €</h3>
+                        <p class="text-xs text-slate-400 mt-1" id="dash-sobres-count">0 sobres activos · Ver detalle →</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <p class="text-xs font-medium text-slate-500 mb-1">Runway financiero</p>
+                        <div class="flex items-end gap-2">
+                            <span id="dash-runway-valor" class="text-3xl font-bold text-slate-800">—</span>
+                            <span class="text-sm text-slate-400 mb-1">meses</span>
+                        </div>
+                        <p id="dash-runway-label" class="text-xs mt-1 font-medium text-slate-400">Sin ingresos, aguantas este tiempo</p>
+                        <div id="dash-runway-semaforo" class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div id="dash-runway-barra" class="h-full rounded-full transition-all duration-700" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-xs font-medium text-slate-500">Tasa de ahorro mensual</p>
+                            <button class="help-btn" onclick="abrirHelp('Tasa de Ahorro','Mide tu eficiencia financiera mensual. Un porcentaje alto indica que vives por debajo de tus posibilidades; un porcentaje bajo señala riesgo de insolvencia ante imprevistos. Se calcula como: (Ingresos − Gastos) / Ingresos × 100.')">?</button>
+                        </div>
+                        <div class="gauge-wrap mt-1">
+                            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+                                <path class="gauge-bg" d="M20,100 A80,80 0 0,1 180,100"/>
+                                <path id="gauge-fill-path" class="gauge-fill" d="M20,100 A80,80 0 0,1 180,100" stroke="#22c55e" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+                                <text id="gauge-pct-text" x="100" y="95" text-anchor="middle" font-size="26" font-weight="bold" fill="#1e293b">0%</text>
+                                <text x="18" y="116" font-size="11" fill="#94a3b8">0%</text>
+                                <text x="172" y="116" font-size="11" fill="#94a3b8">100%</text>
+                            </svg>
+                        </div>
+                        <p id="dash-ahorro-label" class="text-xs text-center text-slate-400 -mt-1">Ingresos vs gastos este mes</p>
+                    </div>
+                </div>
+
+                <div id="alerta-deficit" class="alerta-deficit items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-red-800">Alerta de presupuesto</p>
+                        <p id="alerta-deficit-texto" class="text-xs text-red-600 mt-0.5">Tus gastos fijos superan el 80% de tus ingresos.</p>
+                    </div>
+                </div>
+
+                <!-- Widget Salud de Sobres Virtuales -->
+                <div id="widget-sobres" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-semibold text-slate-800">Salud de Sobres Virtuales</h3>
+                            <button class="help-btn" onclick="abrirHelp('Sobres Virtuales','Cada sobre aparta mensualmente una parte de un pago anual (ej: seguro, IBI). El saldo comprometido crece mes a mes. Si tu saldo real cae por debajo del comprometido total, hay riesgo de impago.')">?</button>
+                        </div>
+                        <button onclick="navigateTo('sobres')" class="text-xs text-indigo-600 font-medium hover:underline">Gestionar →</button>
+                    </div>
+                    <div id="sobres-lista-dashboard" class="space-y-2">
+                        <p class="text-sm text-slate-400 text-center py-4">No hay sobres activos. <button onclick="navigateTo('sobres')" class="text-indigo-600 underline">Crear uno →</button></p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-lg font-semibold text-slate-800">Fondo de Emergencia</h3>
+                        <button class="help-btn" onclick="abrirHelp('Fondo de Emergencia','Indica cuántos meses de gastos tienes cubiertos con tu saldo actual. El objetivo estándar es tener entre 3 y 6 meses de gastos disponibles en todo momento para afrontar imprevistos sin deuda.')">?</button>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <div class="flex justify-between text-xs text-slate-500 mb-1">
+                                <span id="fondo-texto">0 de 6 meses cubiertos</span>
+                                <span id="fondo-pct">0%</span>
+                            </div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="fondo-barra" class="h-full rounded-full transition-all duration-700" style="width:0%;background:#22c55e"></div>
+                            </div>
+                        </div>
+                        <div id="fondo-semaforo" class="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0">🔴</div>
+                    </div>
+                    <p id="fondo-label" class="text-xs text-slate-400 mt-2">Reserva insuficiente — objetivo: 6 meses de gastos</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h3 id="titulo-grafica-proyeccion" class="text-lg font-semibold text-slate-800">Proyección a 5 años</h3>
+                        <button class="help-btn" onclick="abrirHelp('Proyecciones','Visualiza tu salud financiera a largo plazo. Ayuda a entender el efecto del interés compuesto en tus ahorros y si tu trayectoria actual te acerca o aleja de tus objetivos financieros.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Saldo proyectado considerando movimientos recurrentes y límites.</p>
+                    <div class="relative h-72 w-full"><canvas id="projectionChart"></canvas></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Proporción Ingresos / Gastos</h3>
+                        <button class="help-btn" onclick="abrirHelp('Proporción Ingresos/Gastos','Muestra el peso relativo de tus entradas frente a tus salidas. Ideal para identificar desequilibrios estructurales en tu presupuesto.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Peso relativo de cada flujo financiero en el horizonte proyectado.</p>
+                    <div class="relative h-64 w-full flex items-center justify-center">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Detalle Mensual — Primer Año</h3>
+                        <button class="help-btn" onclick="abrirHelp('Detalle Mensual','Comparativa mes a mes. Útil para detectar estacionalidad (meses con más gastos o ingresos) y ajustar previsiones para meses difíciles.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Comparativa mes a mes de entradas y salidas durante los próximos 12 meses.</p>
+                    <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
+                    <!-- Tabla numérica -->
+                    <div class="mt-4 overflow-x-auto">
+                        <table class="w-full text-xs border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-400 uppercase tracking-wider font-semibold">
+                                    <th class="p-2 text-left">Mes</th>
+                                    <th class="p-2 text-right text-green-600">Ingresos</th>
+                                    <th class="p-2 text-right text-red-500">Gastos</th>
+                                    <th class="p-2 text-right text-slate-600">Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-mensual-body" class="divide-y divide-slate-100"></tbody>
+                            <tfoot>
+                                <tr class="bg-slate-50 font-bold text-xs border-t-2 border-slate-200">
+                                    <td class="p-2 text-slate-700">TOTAL AÑO</td>
+                                    <td id="total-anual-ingresos" class="p-2 text-right text-green-700">—</td>
+                                    <td id="total-anual-gastos" class="p-2 text-right text-red-600">—</td>
+                                    <td id="total-anual-neto" class="p-2 text-right">—</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-2 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Cascada del Mes Actual</h3>
+                        <button class="help-btn" onclick="abrirHelp('Cascada (Waterfall)','Desglosa cómo se transforma tu saldo inicial en el saldo final. Permite identificar qué movimiento específico (gasto o ingreso) impactó más tu cuenta este mes.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Cada bloque muestra cómo cada movimiento suma o resta al saldo.</p>
+                    <div class="relative h-72 w-full"><canvas id="waterfallChart"></canvas></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Heatmap de Flujo Neto</h3>
+                        <button class="help-btn" onclick="abrirHelp('Heatmap de Flujo Neto','Mapa de calor del superávit/déficit. Facilita la detección de patrones cíclicos a varios años; ayuda a identificar en qué meses del año tu economía suele sufrir más.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Verde = superávit · Rojo = déficit · Intensidad = magnitud</p>
+                    <div id="heatmap-container" class="overflow-x-auto"></div>
+                    <div class="flex items-center gap-2 mt-3 justify-center">
+                        <span class="text-xs text-slate-400">Déficit</span>
+                        <div class="flex gap-0.5">
+                            <div class="w-4 h-4 rounded" style="background:#fca5a5"></div>
+                            <div class="w-4 h-4 rounded" style="background:#f87171"></div>
+                            <div class="w-4 h-4 rounded" style="background:#ef4444"></div>
+                            <div class="w-4 h-4 rounded" style="background:#e2e8f0"></div>
+                            <div class="w-4 h-4 rounded" style="background:#86efac"></div>
+                            <div class="w-4 h-4 rounded" style="background:#4ade80"></div>
+                            <div class="w-4 h-4 rounded" style="background:#16a34a"></div>
+                        </div>
+                        <span class="text-xs text-slate-400">Superávit</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Gastos por Categoría — Primer Año</h3>
+                        <button class="help-btn" onclick="abrirHelp('Gastos por Categoría (Stacked Area)','Evolución del peso de cada categoría. Es vital para notar si un gasto pequeño (ej. suscripciones) está creciendo desproporcionadamente en relación con otros gastos.')">?</button>
+                    </div>
+                    <p class="text-sm text-slate-500">Evolución mes a mes del peso de cada categoría de gasto.</p>
+                    <div class="relative h-72 w-full"><canvas id="stackedAreaChart"></canvas></div>
+                </div>
+
+                <!-- Patrimonio por propietario -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-3 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800">Patrimonio por Propietario</h3>
+                        <button class="help-btn" onclick="abrirHelp('Patrimonio por Propietario','Desglose de los saldos base de cada cuenta agrupados por titular. Útil para ver la salud financiera individual y conjunta de la unidad familiar.')">?</button>
+                    </div>
+                    <div id="patrimonio-bloque" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                </div>
+            </section>
+
+            <section id="view-movimiento" class="view-section max-w-xl mx-auto">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 id="form-movimiento-title" class="text-xl font-bold mb-6 text-slate-800 border-b pb-2">Registrar Transacción</h3>
+                    <form id="form-movimiento" onsubmit="guardarMovimiento(event)" class="space-y-5">
+                        <input type="hidden" id="mov-id">
+                        
+                        <div class="flex gap-4">
+                            <label class="flex-1 relative border cursor-pointer rounded-lg p-3 flex items-center space-x-3 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-indigo-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                                <input type="radio" name="tipo" id="tipo-ingreso" value="ingreso" checked required class="w-4 h-4 text-indigo-600" onchange="adaptarFormularioPorTipo()">
+                                <span class="block text-sm font-medium text-slate-900">Ingreso</span>
+                            </label>
+                            <label class="flex-1 relative border cursor-pointer rounded-lg p-3 flex items-center space-x-3 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-red-500 has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
+                                <input type="radio" name="tipo" id="tipo-gasto" value="gasto" class="w-4 h-4 text-red-600" onchange="adaptarFormularioPorTipo()">
+                                <span class="block text-sm font-medium text-slate-900">Gasto</span>
+                            </label>
+                            <label class="flex-1 relative border cursor-pointer rounded-lg p-3 flex items-center space-x-3 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-amber-500 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
+                                <input type="radio" name="tipo" id="tipo-transferencia" value="transferencia" class="w-4 h-4 text-amber-600" onchange="adaptarFormularioPorTipo()">
+                                <span class="block text-sm font-medium text-slate-900">Traspaso</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label id="label-cuenta-origen" class="block text-sm font-medium text-slate-700 mb-1">Cuenta</label>
+                                <select id="mov-cuenta-select" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
+                            </div>
+                            <div id="container-cuenta-destino" class="hidden">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Cuenta de Destino</label>
+                                <select id="mov-cuenta-destino-select" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Motivo / Categoría</label>
+                                <input type="text" id="mov-motivo" required placeholder="Ej. Alimentación, Suministros, Streaming, Ocio..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Descripción / Concepto</label>
+                                <input type="text" id="mov-concepto" required placeholder="Ej. Mercadona, Factura Luz, Netflix..." class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label id="label-cantidad" class="block text-sm font-medium text-slate-700 mb-1">Cantidad (€)</label>
+                                <input type="number" step="0.01" id="mov-cantidad" required placeholder="0.00" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5" oninput="actualizarLabelCantidad()">
+                                <p id="preview-mensual" class="hidden mt-1 text-xs text-indigo-600 font-medium"></p>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Mes de inicio</label>
+                                <input type="month" id="mov-fecha-inicio" required class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100">
+                            <label class="flex items-center cursor-pointer gap-3">
+                                <div class="relative w-10 h-6 flex-shrink-0">
+                                    <input type="checkbox" id="mov-recurrente" onchange="toggleFechaLimite()" class="sr-only peer">
+                                    <div class="w-10 h-6 bg-slate-200 peer-checked:bg-indigo-600 rounded-full transition-colors duration-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 peer-checked:translate-x-4"></div>
+                                </div>
+                                <div class="text-sm font-medium text-slate-700">Es un movimiento recurrente</div>
+                            </label>
+                        </div>
+                        <!-- Periodicidad: solo visible si es recurrente -->
+                        <div id="container-periodicidad" class="hidden bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                            <p class="text-xs font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Periodicidad</p>
+                            <div class="flex gap-3">
+                                <label class="flex-1 flex items-center gap-2 cursor-pointer p-2.5 rounded-lg border bg-white has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 transition-colors">
+                                    <input type="radio" name="periodicidad" value="mensual" id="period-mensual" checked class="w-4 h-4 text-indigo-600" onchange="actualizarLabelCantidad()">
+                                    <div>
+                                        <span class="block text-sm font-medium text-slate-800">Mensual</span>
+                                        <span class="block text-xs text-slate-400">Se aplica cada mes</span>
+                                    </div>
+                                </label>
+                                <label class="flex-1 flex items-center gap-2 cursor-pointer p-2.5 rounded-lg border bg-white has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 transition-colors">
+                                    <input type="radio" name="periodicidad" value="anual" id="period-anual" class="w-4 h-4 text-indigo-600" onchange="actualizarLabelCantidad()" >
+                                    <div>
+                                        <span class="block text-sm font-medium text-slate-800">Anual</span>
+                                        <span class="block text-xs text-slate-400">Se divide entre 12</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div id="hint-anual" class="hidden mt-2 text-xs text-indigo-600 bg-white border border-indigo-100 rounded p-2">
+                                💡 Introduce el importe <strong>anual total</strong>. Se dividirá entre 12 automáticamente para el cálculo mensual.
+                            </div>
+                        </div>
+                        <div id="container-inversion" class="pt-2 border-t border-slate-100">
+                            <label class="flex items-center cursor-pointer gap-3">
+                                <input type="checkbox" id="mov-inversion" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <span class="text-sm font-medium text-slate-700">Es aportación a inversión</span>
+                                    <p class="text-xs text-slate-400">Diferencia este gasto de los demás (p.ej. fondos, broker…)</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="container-fecha-limite" class="hidden bg-slate-50 p-4 rounded-lg border border-slate-200 mt-3">
+                            <label class="flex items-center space-x-2 mb-2">
+                                <input type="checkbox" id="mov-tiene-limite" onchange="toggleInputLimite()" class="rounded text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-medium text-slate-700">Tiene fecha límite</span>
+                            </label>
+                            <div id="wrapper-input-limite" class="hidden mt-2">
+                                <label class="block text-xs text-slate-500 mb-1">Hasta el mes de:</label>
+                                <input type="month" id="mov-fecha-fin" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2">
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="button" id="cancel-edit-btn" onclick="limpiarFormularioMovimiento(); navigateTo('movimientos-activos');" class="hidden flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200">Cancelar Edición</button>
+                            <button type="submit" id="submit-mov-btn" class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-3 text-center shadow-md">Guardar Movimiento</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section id="view-suscripciones" class="view-section max-w-3xl mx-auto space-y-4">
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white p-6 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold">Control de Suscripciones y Gastos Fijos</h3>
+                        <p class="text-xs text-indigo-200 mt-1">Carga automática de contratos recurrentes activos de la cuenta seleccionada.</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-lg border border-white/20 text-right">
+                        <span class="text-xs text-indigo-100 block font-medium">Total Comprometido Mensual</span>
+                        <span id="suscripciones-total-mensual" class="text-2xl font-bold tracking-tight">0.00 €</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <th class="p-4">Servicio / Categoría</th>
+                                    <th class="p-4">Importe Mensual</th>
+                                    <th class="p-4">Vigencia</th>
+                                    <th class="p-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-suscripciones-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                    <div id="suscripciones-vacio" class="hidden p-8 text-center text-slate-400 text-sm">No tienes cargada ninguna suscripción mensual recurrente en esta cuenta.</div>
+                </div>
+            </section>
+
+            <section id="view-historial-meses" class="view-section max-w-3xl mx-auto space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Cierre e Historial Real</h3>
+                        <p class="text-xs text-slate-500">Flujo consolidado calculado exclusivamente para la cuenta activa.</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <th class="p-4">Mes / Período</th>
+                                    <th class="p-4">Ingresos / Entradas</th>
+                                    <th class="p-4">Gastos / Salidas</th>
+                                    <th class="p-4">Saldo Cierre</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-meses-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-movimientos-activos" class="view-section max-w-3xl mx-auto space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-slate-800">Reglas y Regímenes Activos</h3>
+                        <p class="text-xs text-slate-500">Configuración operativa asignada a la cuenta activa.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                        <button onclick="limpiarFormularioMovimiento(); navigateTo('movimiento')" class="w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-700 text-xs px-3 py-2.5 rounded-lg font-medium transition-colors whitespace-nowrap">+ Añadir Regla</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <th class="p-4">Detalle</th>
+                                    <th class="p-4">Tipo</th>
+                                    <th class="p-4">Importe</th>
+                                    <th class="p-4">Vigencia</th>
+                                    <th class="p-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-movimientos-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                    <div id="historial-vacio" class="hidden p-8 text-center text-slate-400 text-sm">No tienes ningún movimiento activo en esta cuenta.</div>
+                </div>
+            </section>
+
+            <section id="view-cuentas" class="view-section max-w-2xl mx-auto">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">Añadir Nueva Cuenta</h3>
+                    <form onsubmit="guardarNuevaCuenta(event)" class="space-y-3">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="nueva-cuenta-nombre" required placeholder="Nombre (ej. Cuenta de Ahorro)" class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            <input type="number" step="0.01" id="nueva-cuenta-base" placeholder="Saldo Inicial (€)" class="w-full sm:w-1/3 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Propietario</label>
+                                <select id="nueva-cuenta-propietario" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 text-sm">
+                                    <option value="yo">👤 Yo</option>
+                                    <option value="mujer">👩 Mujer</option>
+                                    <option value="comun">👫 Común</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Tipo de cuenta</label>
+                                <select id="nueva-cuenta-tipo" onchange="toggleNuevaTasa()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 text-sm">
+                                    <option value="corriente">Corriente</option>
+                                    <option value="ahorro">💰 Ahorro</option>
+                                    <option value="inversion">📈 Inversión</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="nueva-tasa-container" class="hidden">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Tasa de Interés Anual (TAE %)</label>
+                            <div class="relative">
+                                <input type="number" step="0.01" min="0" id="nueva-cuenta-tasa" placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8 text-sm">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">Crear Cuenta</button>
+                    </form>
+                </div>
+                <h3 class="text-lg font-bold mb-3 text-slate-700">Estructura de Cuentas del Sistema</h3>
+                <div id="lista-cuentas" class="space-y-3"></div>
+            </section>
+            <section id="view-simulador" class="view-section max-w-3xl mx-auto space-y-6">
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-6 rounded-xl shadow-sm">
+                    <h3 class="text-xl font-bold">Simulador de Amortización</h3>
+                    <p class="text-indigo-200 text-sm mt-1">¿Te sale más a cuenta amortizar tu deuda o dejar el dinero generando intereses en una cuenta remunerada?</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-5">
+                    <h4 class="font-semibold text-slate-800">Datos de la Hipoteca / Deuda</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Saldo pendiente (€)</label>
+                            <input type="number" id="sim-deuda" placeholder="50000" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de interés anual (TIN %)</label>
+                            <div class="relative">
+                                <input type="number" id="sim-tipo-deuda" placeholder="3.5" step="0.01" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la próxima cuota</label>
+                            <input type="month" id="sim-fecha-inicio" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la última cuota</label>
+                            <input type="month" id="sim-fecha-fin" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Importe a amortizar (€)</label>
+                            <input type="number" id="sim-capital" placeholder="10000" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-slate-800 pt-2 border-t border-slate-100">Datos de la Alternativa: Invertir / Cuenta Remunerada</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">TAE de la cuenta / inversión (%)</label>
+                            <div class="relative">
+                                <input type="number" id="sim-tipo-ahorro" placeholder="3.0" step="0.01" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Horizonte de la inversión (meses)</label>
+                            <input type="number" id="sim-horizonte" placeholder="60" step="1" min="1" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            <p class="text-xs text-slate-400 mt-1">Cuánto tiempo mantendrías el dinero invertido. Puede ser diferente (mayor) al plazo que ahorras con la amortización.</p>
+                        </div>
+                    </div>
+                    <button onclick="calcularSimulador()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-3 transition-colors text-sm shadow-md">Calcular y Comparar</button>
+                </div>
+
+                <!-- Aviso ajuste capital -->
+                <div id="sim-aviso-ajuste" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 font-medium"></div>
+
+                <!-- Resultados del simulador -->
+                <div id="sim-resultado" class="hidden space-y-4">
+
+                    <!-- ① Tabla comparativa de cuotas y fechas -->
+                    <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="bg-slate-50 px-5 py-3 border-b border-slate-100">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Comparativa de plazos, cuotas y fechas</p>
+                        </div>
+                        <div class="grid grid-cols-2 divide-x divide-slate-100">
+                            <div class="p-5 space-y-2">
+                                <p class="text-xs font-semibold text-slate-400 uppercase mb-3">Sin amortizar</p>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Cuota mensual</span><span id="sim-label-cuota" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Nº de cuotas restantes</span><span id="sim-label-plazos-sin" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Última cuota</span><span id="sim-label-fecha-sin" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm border-t border-slate-100 pt-2"><span class="text-slate-500">Intereses que pagarás</span><span id="sim-label-coste-sin" class="font-bold text-red-600">—</span></div>
+                            </div>
+                            <div class="p-5 bg-green-50 space-y-2">
+                                <p class="text-xs font-semibold text-green-600 uppercase mb-3">Amortizando <span id="sim-label-capital-badge" class="normal-case font-normal text-green-500"></span></p>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Cuota mensual</span><span id="sim-label-cuota-amort" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Nº de cuotas restantes</span><span id="sim-label-plazos-con" class="font-bold text-green-700">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Última cuota</span><span id="sim-label-fecha-con" class="font-bold text-green-700">—</span></div>
+                                <div class="flex justify-between text-sm border-t border-slate-100 pt-2"><span class="text-slate-500">Intereses que pagarás</span><span id="sim-label-coste-con" class="font-bold text-green-700">—</span></div>
+                            </div>
+                        </div>
+                        <div class="px-5 py-3 bg-green-100 border-t border-green-200 flex justify-between items-center">
+                            <span class="text-sm font-semibold text-green-800">Intereses ahorrados en la hipoteca (A − B)</span>
+                            <span id="sim-ahorro-intereses" class="text-xl font-bold text-green-700">—</span>
+                        </div>
+                    </div>
+
+                    <!-- ② Desglose del coste real de amortizar -->
+                    <div class="bg-white rounded-xl border border-amber-200 shadow-sm overflow-hidden">
+                        <div class="bg-amber-50 px-5 py-3 border-b border-amber-100">
+                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Desglose del coste real de amortizar ahora</p>
+                            <p class="text-xs text-amber-600 mt-0.5">La amortización se aplica sobre capital pendiente, pero el banco siempre cobra los intereses devengados hasta ese momento</p>
+                        </div>
+                        <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <p class="text-xs text-slate-500 mb-1">Capital amortizado</p>
+                                <p id="sim-coste-capital" class="text-xl font-bold text-slate-800">—</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Lo que reduces de deuda</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-slate-500 mb-1">Interés bancario aplicado</p>
+                                <p id="sim-coste-interes-banco" class="text-xl font-bold text-amber-600">—</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Interés del mes sobre deuda actual</p>
+                            </div>
+                            <div class="text-center border-t sm:border-t-0 sm:border-l border-slate-100 pt-3 sm:pt-0 sm:pl-4">
+                                <p class="text-xs text-slate-500 mb-1">Desembolso total real</p>
+                                <p id="sim-coste-total-real" class="text-xl font-bold text-red-600">—</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Capital + interés devengado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ③ Comparativa Amortizar vs Invertir -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-xl border border-green-200 shadow-sm">
+                            <p class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-2">Opción A — Amortizar</p>
+                            <p class="text-2xl font-bold text-green-700" id="sim-ahorro-display">—</p>
+                            <p class="text-xs text-slate-400 mt-1">Intereses que te ahorras en la hipoteca</p>
+                            <div class="mt-3 space-y-1">
+                                <div id="sim-cuota-antes" class="text-xs text-slate-500"></div>
+                                <div id="sim-cuota-despues" class="text-xs font-medium text-green-600"></div>
+                                <div id="sim-fechas-resumen" class="text-xs text-slate-400 pt-1 border-t border-slate-100 mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-indigo-200 shadow-sm">
+                            <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Opción B — Invertir / Cuenta Remunerada</p>
+                            <p class="text-2xl font-bold text-indigo-700" id="sim-ganancia-ahorro">—</p>
+                            <p class="text-xs text-slate-400 mt-1">Ganancia neta (ya descontada retención ~19%)</p>
+                            <div class="mt-3 space-y-1">
+                                <div id="sim-nota-inversion" class="text-xs text-slate-500"></div>
+                                <div id="sim-nota-fiscal" class="text-xs text-slate-400 italic"></div>
+                                <div id="sim-fecha-inversion" class="text-xs text-indigo-500 font-medium pt-1 border-t border-slate-100 mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sim-veredicto" class="p-5 rounded-xl text-white font-semibold text-base text-center shadow-md">—</div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                        <p class="text-xs font-semibold text-slate-500 mb-1">Evolución acumulada: ahorro en intereses vs ganancia de inversión</p>
+                        <p class="text-xs text-slate-400 mb-3">La línea verde crece cuando terminas la hipoteca antes. La línea morada refleja el crecimiento real de tu inversión durante su horizonte completo.</p>
+                        <div class="relative h-56"><canvas id="sim-chart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================== SOBRES VIRTUALES =================== -->
+            <section id="view-sobres" class="view-section max-w-3xl mx-auto space-y-6">
+                <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 rounded-xl shadow-sm">
+                    <h3 class="text-xl font-bold">Sobres Virtuales</h3>
+                    <p class="text-amber-100 text-sm mt-1">Provisiona automáticamente pagos anuales apartando una parte cada mes. Tu saldo disponible se ajusta sin que muevas dinero físicamente.</p>
+                </div>
+
+                <!-- Resumen balances -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm text-center">
+                        <p class="text-xs text-slate-500 mb-1">Saldo Real</p>
+                        <p id="sobres-saldo-real" class="text-xl font-bold text-slate-800">—</p>
+                    </div>
+                    <div class="bg-amber-50 rounded-xl p-4 border border-amber-200 shadow-sm text-center">
+                        <p class="text-xs text-amber-700 font-medium mb-1">Comprometido</p>
+                        <p id="sobres-comprometido" class="text-xl font-bold text-amber-700">—</p>
+                    </div>
+                    <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 shadow-sm text-center">
+                        <p class="text-xs text-indigo-700 font-medium mb-1">Disponible</p>
+                        <p id="sobres-disponible" class="text-xl font-bold text-indigo-700">—</p>
+                    </div>
+                </div>
+
+                <!-- Formulario nuevo sobre -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                    <h4 class="font-bold text-slate-800 mb-4">Nuevo Sobre Virtual</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Nombre del gasto</label>
+                            <input type="text" id="sobre-nombre" placeholder="Ej: Seguro del coche, IBI..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Importe total anual (€)</label>
+                            <input type="number" id="sobre-importe" step="0.01" placeholder="600.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Fecha de vencimiento anual</label>
+                            <input type="date" id="sobre-vencimiento" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Inicio del ciclo de ahorro</label>
+                            <input type="date" id="sobre-inicio" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                    </div>
+                    <div id="sobre-preview" class="hidden mb-4 bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-700">
+                        <span id="sobre-preview-text"></span>
+                    </div>
+                    <button onclick="guardarSobre()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors shadow-sm">
+                        Crear Sobre Virtual
+                    </button>
+                </div>
+
+                <!-- Lista de sobres -->
+                <div id="sobres-lista" class="space-y-3"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal Ejecutar Pago Anual -->
+    <div id="modal-ejecutar-pago" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Registrar Pago Real</h3>
+            <p class="text-sm text-slate-500 mb-4">Marca el pago como realizado. El sobre se reiniciará para el próximo ciclo anual.</p>
+            <input type="hidden" id="modal-sobre-id">
+            <div class="bg-slate-50 rounded-lg p-3 mb-4 text-sm">
+                <p class="font-medium text-slate-700" id="modal-sobre-nombre-label">—</p>
+                <p class="text-slate-500 text-xs mt-0.5" id="modal-sobre-importe-label">—</p>
+            </div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Cuenta desde la que se paga</label>
+            <select id="modal-sobre-cuenta" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm mb-4"></select>
+            <div class="flex gap-2">
+                <button onclick="cerrarModalPago()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium">Cancelar</button>
+                <button onclick="ejecutarPagoAnual()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Confirmar Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" onclick="cerrarHelpModal(event)">
+        <div class="help-card">
+            <div class="flex items-start justify-between mb-3">
+                <h3 id="help-modal-title" class="text-base font-bold text-slate-900 pr-4"></h3>
+                <button onclick="cerrarHelpModal()" class="text-slate-400 hover:text-slate-600 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <p id="help-modal-body" class="text-sm text-slate-600 leading-relaxed"></p>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
+            <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">Mensaje</h3>
+            <p id="modal-content" class="text-slate-600 text-sm mb-6">Contenido</p>
+            <div class="flex justify-end"><button onclick="cerrarModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200">Cerrar</button></div>
+        </div>
+    </div>
+
+    <div id="modal-editar-cuenta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">Editar Cuenta</h3>
+            <input type="hidden" id="edit-cuenta-id">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+            <input type="text" id="edit-cuenta-nombre" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 mb-3">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Saldo Base Actual (€)</label>
+            <input type="number" step="0.01" id="edit-cuenta-base" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 mb-3">
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Propietario</label>
+                    <select id="edit-cuenta-propietario" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        <option value="yo">👤 Yo</option>
+                        <option value="mujer">👩 Mujer</option>
+                        <option value="comun">👫 Común</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                    <select id="edit-cuenta-tipo" onchange="toggleEditTasa()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        <option value="corriente">Corriente</option>
+                        <option value="ahorro">💰 Ahorro</option>
+                        <option value="inversion">📈 Inversión</option>
+                    </select>
+                </div>
+            </div>
+            <div id="edit-tasa-container" class="hidden mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Tasa de Interés Anual (TAE %)</label>
+                <div class="relative">
+                    <input type="number" step="0.01" min="0" id="edit-cuenta-tasa" placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
+                    <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <button onclick="eliminarCuenta()" class="text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium">Eliminar</button>
+                <div class="flex gap-2">
+                    <button onclick="cerrarModalEditarCuenta()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium">Cancelar</button>
+                    <button onclick="guardarEdicionCuenta()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. CONFIGURACIÓN PWA --- */
+        const manifestData = {
+            "name": "Mis Finanzas", "short_name": "Finanzas", "start_url": ".", "display": "standalone",
+            "background_color": "#f8fafc", "theme_color": "#4f46e5",
+            "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRmNDZlNSIvPjx0ZXh0IHg9IjUwIiB5PSI2NCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RjwvdGV4dD48L3N2Zz4=", "sizes": "512x512", "type": "image/svg+xml" }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
+        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+
+        const swBlob = new Blob([`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{});`], {type: 'application/javascript'});
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.log('Modo local activo'));
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e;
+            const btn = document.getElementById('install-btn');
+            if (btn) {
+                btn.style.display = 'flex';
+                btn.onclick = async () => {
+                    btn.style.display = 'none'; deferredPrompt.prompt();
+                    await deferredPrompt.userChoice; deferredPrompt = null;
+                };
+            }
+        });
+
+        /* --- 2. GESTIÓN LOCAL (INDEXEDDB) --- */
+        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 3; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0; let filtroVistaPropietario = 'ALL';
+
+        function initDB() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onupgradeneeded = (e) => {
+                    const localDB = e.target.result;
+                    if (!localDB.objectStoreNames.contains('cuentas')) localDB.createObjectStore('cuentas', { keyPath: 'id', autoIncrement: true });
+                    if (!localDB.objectStoreNames.contains('movimientos')) {
+                        const store = localDB.createObjectStore('movimientos', { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('cuentaId', 'cuentaId', { unique: false });
+                    }
+                    // v3: sobres virtuales / provisión automática
+                    if (!localDB.objectStoreNames.contains('pagosAnuales')) {
+                        localDB.createObjectStore('pagosAnuales', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
+
+        function dbAdd(store, data) {
+            return new Promise((res) => { const req = db.transaction(store, 'readwrite').objectStore(store).add(data); req.onsuccess = () => res(req.result); });
+        }
+        function dbPut(store, data) {
+            return new Promise((res) => { const req = db.transaction(store, 'readwrite').objectStore(store).put(data); req.onsuccess = () => res(req.result); });
+        }
+        function dbGetAll(store) {
+            return new Promise((res) => { const req = db.transaction(store, 'readonly').objectStore(store).getAll(); req.onsuccess = () => res(req.result); });
+        }
+        function dbGet(store, id) {
+            return new Promise((res) => { const req = db.transaction(store, 'readonly').objectStore(store).get(id); req.onsuccess = () => res(req.result); });
+        }
+        function dbDelete(store, id) {
+            return new Promise((res) => { const req = db.transaction(store, 'readwrite').objectStore(store).delete(id); req.onsuccess = () => res(); });
+        }
+        function dbClear(store) {
+            return new Promise((res) => { const req = db.transaction(store, 'readwrite').objectStore(store).clear(); req.onsuccess = () => res(); });
+        }
+
+        /* --- 3. NAVEGACIÓN Y CONFIGURACIÓN INICIAL --- */
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            await comprobarCuentasIniciales();
+            await cargarSelectorGlobalCuentas();
+            actualizarTodo();
+        });
+
+        const views = { 
+            'dashboard': 'Proyecciones', 
+            'movimiento': 'Añadir Movimiento', 
+            'suscripciones': 'Suscripciones y Gastos Fijos',
+            'historial-meses': 'Historial por Meses', 
+            'movimientos-activos': 'Movimientos Activos', 
+            'cuentas': 'Mis Cuentas',
+            'simulador': 'Simulador de Amortización',
+            'sobres': 'Sobres Virtuales'
+        };
+        
+        async function navigateTo(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            
+            document.getElementById('header-title').innerText = views[viewId];
+            if(!document.getElementById('sidebar').classList.contains('sidebar-closed')) toggleSidebar();
+            
+            // Ocultar opción "Todas" fuera de proyecciones
+            const optAll = document.getElementById('opt-all-cuentas');
+            if (optAll) {
+                if (viewId === 'dashboard') {
+                    optAll.style.display = 'block';
+                } else {
+                    optAll.style.display = 'none';
+                    if (cuentaActivaId === 'ALL') {
+                        const cuentas = await dbGetAll('cuentas');
+                        if (cuentas.length > 0) cambiarCuentaActiva(cuentas[0].id);
+                    }
+                }
+            }
+            
+            if(viewId === 'dashboard') actualizarTodo();
+            if(viewId === 'suscripciones') renderSuscripciones();
+            if(viewId === 'historial-meses') renderHistorialMeses();
+            if(viewId === 'movimientos-activos') renderMovimientosActivos();
+            if(viewId === 'cuentas') renderListaCuentas();
+            if(viewId === 'simulador') {
+                // Pre-rellenar fecha inicio con el mes actual si está vacío
+                const fi = document.getElementById('sim-fecha-inicio');
+                if (fi && !fi.value) {
+                    const hoy = new Date();
+                    fi.value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+                }
+            }
+            if(viewId === 'sobres') renderSobres();
+        }
+
+        function toggleSidebar() {
+            const s = document.getElementById('sidebar'); const o = document.getElementById('sidebar-overlay');
+            s.classList.toggle('sidebar-closed'); s.classList.toggle('sidebar-open'); o.classList.toggle('hidden'); o.classList.toggle('block');
+        }
+        function mostrarMensaje(t, m) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerText = m; document.getElementById('custom-modal').classList.remove('hidden'); }
+        function cerrarModal() { document.getElementById('custom-modal').classList.add('hidden'); }
+
+        async function comprobarCuentasIniciales() {
+            const c = await dbGetAll('cuentas');
+            cuentaActivaId = c.length === 0 ? await dbAdd('cuentas', { nombre: 'Cuenta Principal', base: 0, propietario: 'yo', tipo: 'corriente', tasa_interes: 0 }) : c[0].id;
+        }
+
+        async function cargarSelectorGlobalCuentas() {
+            const todasCuentas = await dbGetAll('cuentas');
+            // Filtrar por propietario si hay filtro activo
+            const cuentas = filtroVistaPropietario === 'ALL' ? todasCuentas : todasCuentas.filter(c => c.propietario === filtroVistaPropietario || !c.propietario);
+            const selectIds = ['global-cuenta-select', 'mov-cuenta-select', 'mov-cuenta-destino-select'];
+            
+            selectIds.forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                sel.innerHTML = '';
+                
+                if (id === 'global-cuenta-select') {
+                    const optAll = document.createElement('option');
+                    optAll.value = 'ALL';
+                    optAll.textContent = filtroVistaPropietario === 'ALL' ? 'Todas las Cuentas' : filtroVistaPropietario === 'yo' ? 'Mis Cuentas' : filtroVistaPropietario === 'mujer' ? 'Cuentas Mujer' : 'Cuentas Comunes';
+                    optAll.id = 'opt-all-cuentas';
+                    sel.appendChild(optAll);
+                }
+
+                cuentas.forEach(c => {
+                    const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.nombre;
+                    if(c.id === cuentaActivaId && id !== 'mov-cuenta-destino-select') opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            });
+            
+            if (cuentaActivaId === 'ALL') {
+                document.getElementById('global-cuenta-select').value = 'ALL';
+            }
+            
+            const dest = document.getElementById('mov-cuenta-destino-select');
+            if (dest && dest.options.length > 1 && dest.value == cuentaActivaId) {
+                dest.selectedIndex = (dest.selectedIndex + 1) % dest.options.length;
+            }
+        }
+
+        function cambiarFiltroPropietario(val) {
+            filtroVistaPropietario = val;
+            cuentaActivaId = 'ALL';
+            cargarSelectorGlobalCuentas();
+            actualizarTodo();
+            // update button styles
+            ['filtro-yo','filtro-mujer','filtro-comun','filtro-all'].forEach(id => {
+                const el = document.getElementById(id);
+                if(!el) return;
+                el.classList.remove('bg-indigo-600','text-white','shadow');
+                el.classList.add('bg-slate-100','text-slate-600');
+            });
+            const activeId = val === 'ALL' ? 'filtro-all' : val === 'yo' ? 'filtro-yo' : val === 'mujer' ? 'filtro-mujer' : 'filtro-comun';
+            const activeEl = document.getElementById(activeId);
+            if(activeEl){ activeEl.classList.add('bg-indigo-600','text-white','shadow'); activeEl.classList.remove('bg-slate-100','text-slate-600'); }
+        }
+
+        function cambiarCuentaActiva(id) {
+            cuentaActivaId = id === 'ALL' ? 'ALL' : parseInt(id);
+            const selects = ['global-cuenta-select', 'mov-cuenta-select'];
+            selects.forEach(sid => {
+                const el = document.getElementById(sid);
+                if (el && id !== 'ALL') el.value = id;
+            });
+            
+            actualizarTodo();
+            const activeView = Object.keys(views).find(v => document.getElementById(`view-${v}`).classList.contains('active'));
+            if (activeView) navigateTo(activeView);
+        }
+
+        function cambiarAniosProyeccion(anios) {
+            aniosProyeccion = parseInt(anios);
+            document.getElementById('titulo-grafica-proyeccion').innerText = `Proyección a ${aniosProyeccion} ${aniosProyeccion === 1 ? 'año' : 'años'}`;
+            actualizarTodo();
+        }
+
+        function cambiarInteresCompuesto(valor) {
+            interesCompuestoMensual = parseFloat(valor) || 0;
+            actualizarTodo();
+        }
+
+        /* --- 4. FORMULARIO ADAPTATIVO (REGLAS Y TRASPASOS) --- */
+        function adaptarFormularioPorTipo() {
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const containerDestino = document.getElementById('container-cuenta-destino');
+            const containerInversion = document.getElementById('container-inversion');
+            const labelOrigen = document.getElementById('label-cuenta-origen');
+
+            if (tipo === 'transferencia') {
+                containerDestino.classList.remove('hidden');
+                containerInversion.classList.add('hidden');
+                labelOrigen.innerText = "Cuenta de Origen";
+                document.getElementById('mov-cuenta-destino-select').required = true;
+            } else {
+                containerDestino.classList.add('hidden');
+                containerInversion.classList.remove('hidden');
+                labelOrigen.innerText = "Cuenta";
+                document.getElementById('mov-cuenta-destino-select').required = false;
+            }
+        }
+
+        function toggleFechaLimite() {
+            const rec = document.getElementById('mov-recurrente').checked;
+            document.getElementById('container-fecha-limite').classList.toggle('hidden', !rec);
+            document.getElementById('container-periodicidad').classList.toggle('hidden', !rec);
+            if (!rec) {
+                document.getElementById('mov-tiene-limite').checked = false;
+                toggleInputLimite();
+                document.getElementById('period-mensual').checked = true;
+                document.getElementById('hint-anual').classList.add('hidden');
+                document.getElementById('preview-mensual').classList.add('hidden');
+            }
+            actualizarLabelCantidad();
+        }
+
+        function actualizarLabelCantidad() {
+            const rec = document.getElementById('mov-recurrente').checked;
+            const esAnual = rec && document.getElementById('period-anual') && document.getElementById('period-anual').checked;
+            const hintEl = document.getElementById('hint-anual');
+            const previewEl = document.getElementById('preview-mensual');
+            const labelEl = document.getElementById('label-cantidad');
+
+            if (hintEl) hintEl.classList.toggle('hidden', !esAnual);
+            if (labelEl) labelEl.textContent = esAnual ? 'Cantidad ANUAL (€)' : 'Cantidad (€)';
+
+            if (esAnual && previewEl) {
+                const val = parseFloat(document.getElementById('mov-cantidad').value) || 0;
+                if (val > 0) {
+                    previewEl.textContent = `= ${(val / 12).toFixed(2)} €/mes`;
+                    previewEl.classList.remove('hidden');
+                } else {
+                    previewEl.classList.add('hidden');
+                }
+            } else if (previewEl) {
+                previewEl.classList.add('hidden');
+            }
+        }
+        function toggleInputLimite() {
+            const tl = document.getElementById('mov-tiene-limite').checked;
+            document.getElementById('wrapper-input-limite').classList.toggle('hidden', !tl);
+            document.getElementById('mov-fecha-fin').required = tl;
+            if(!tl) document.getElementById('mov-fecha-fin').value = '';
+        }
+
+        function limpiarFormularioMovimiento() {
+            document.getElementById('form-movimiento').reset();
+            document.getElementById('mov-id').value = '';
+            document.getElementById('mov-cuenta-select').value = cuentaActivaId;
+            document.getElementById('form-movimiento-title').innerText = "Registrar Transacción";
+            document.getElementById('submit-mov-btn').innerText = "Guardar Movimiento";
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            const d = new Date(); document.getElementById('mov-fecha-inicio').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('period-mensual').checked = true;
+            adaptarFormularioPorTipo();
+            toggleFechaLimite();
+        }
+
+        async function guardarMovimiento(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('mov-id').value;
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const cuentaId = parseInt(document.getElementById('mov-cuenta-select').value);
+            const cuentaDestinoId = tipo === 'transferencia' ? parseInt(document.getElementById('mov-cuenta-destino-select').value) : null;
+
+            if (tipo === 'transferencia' && cuentaId === cuentaDestinoId) {
+                mostrarMensaje('Error de validación', 'La cuenta de origen y de destino no pueden ser la misma.');
+                return;
+            }
+
+            const recurrente = document.getElementById('mov-recurrente').checked;
+            const periodicidad = recurrente && document.getElementById('period-anual').checked ? 'anual' : 'mensual';
+            const cantidadInput = parseFloat(document.getElementById('mov-cantidad').value);
+            const cantidadMensual = periodicidad === 'anual' ? cantidadInput / 12 : cantidadInput;
+
+            const data = {
+                cuentaId: cuentaId,
+                cuentaDestinoId: cuentaDestinoId,
+                tipo: tipo,
+                motivo: document.getElementById('mov-motivo').value,
+                concepto: document.getElementById('mov-concepto').value,
+                cantidad: cantidadMensual,          // siempre almacenamos el mensual
+                cantidadOriginal: cantidadInput,    // guardamos el importe tal como lo introdujo el usuario
+                periodicidad: periodicidad,         // 'mensual' | 'anual'
+                fechaInicio: document.getElementById('mov-fecha-inicio').value,
+                recurrente: recurrente,
+                esInversion: tipo !== 'transferencia' ? document.getElementById('mov-inversion').checked : false,
+                tieneLimite: document.getElementById('mov-tiene-limite').checked,
+                fechaFin: document.getElementById('mov-fecha-fin').value || null
+            };
+
+            if (data.recurrente && data.tieneLimite && data.fechaInicio > data.fechaFin) {
+                mostrarMensaje('Error', 'La fecha límite es anterior al mes de inicio.'); return;
+            }
+
+            if (idVal) {
+                data.id = parseInt(idVal);
+                await dbPut('movimientos', data);
+                mostrarMensaje('¡Modificado!', 'Movimiento actualizado correctamente.');
+            } else {
+                await dbAdd('movimientos', data);
+                mostrarMensaje('¡Éxito!', 'Movimiento guardado con éxito.');
+            }
+            limpiarFormularioMovimiento();
+            navigateTo('movimientos-activos');
+        }
+
+        /* --- 5. VISUALIZACIÓN ANALÍTICA DE SUSCRIPCIONES --- */
+        async function renderSuscripciones() {
+            if (cuentaActivaId === 'ALL') return;
+            const todos = await dbGetAll('movimientos');
+            const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId && m.tipo === 'gasto' && m.recurrente);
+            const tbody = document.getElementById('tabla-suscripciones-body');
+            tbody.innerHTML = '';
+            
+            let acumuladoMensual = 0;
+            document.getElementById('suscripciones-vacio').classList.toggle('hidden', filtrados.length > 0);
+
+            filtrados.forEach(m => {
+                acumuladoMensual += m.cantidad; // cantidad ya es mensual
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+
+                const esAnual = m.periodicidad === 'anual';
+                const importeOriginal = esAnual ? (m.cantidadOriginal ?? m.cantidad * 12) : m.cantidad;
+                
+                let vigencia = `desde ${m.fechaInicio}`;
+                if (m.tieneLimite && m.fechaFin) vigencia += ` hasta ${m.fechaFin}`;
+
+                const periodBadge = esAnual
+                    ? `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-700 font-medium">📅 Anual</span>`
+                    : `<span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">🔁 Mensual</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-semibold text-slate-800">${m.concepto}</div>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span class="text-xs text-slate-400">${m.motivo}</span>
+                            ${periodBadge}
+                            ${m.esInversion ? '<span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-700 font-medium">📈 Inversión</span>' : ''}
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-red-600">-${m.cantidad.toFixed(2)} €<span class="text-xs font-normal text-slate-400">/mes</span></div>
+                        ${esAnual ? `<div class="text-xs text-slate-400 mt-0.5">Total anual: ${importeOriginal.toFixed(2)} €</div>` : ''}
+                    </td>
+                    <td class="p-4 text-xs text-slate-500">${vigencia}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="editarMovimientoInPlace(${m.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Editar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('suscripciones-total-mensual').innerText = acumuladoMensual.toFixed(2) + ' €';
+        }
+
+        /* --- 6. RENDERIZADO DE VISTAS COMPLEMENTARIAS --- */
+        async function renderHistorialMeses() {
+            if (!cuentaActivaId || cuentaActivaId === 'ALL') return;
+            const cuenta = await dbGet('cuentas', cuentaActivaId);
+            if (!cuenta) return;
+            const todos = await dbGetAll('movimientos');
+            const movs = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
+
+            const tbody = document.getElementById('tabla-meses-body');
+            tbody.innerHTML = '';
+
+            const hoy = new Date();
+            const mesActualStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+
+            let minFechaStr = mesActualStr;
+            movs.forEach(m => { if (m.fechaInicio < minFechaStr) minFechaStr = m.fechaInicio; });
+
+            let startParts = minFechaStr.split('-');
+            let startIdx = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, 1);
+            let endIdx = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+            let balanceSimulado = parseFloat(cuenta.base) || 0;
+            let listaMeses = [];
+            let diffMeses = (endIdx.getFullYear() - startIdx.getFullYear()) * 12 + (endIdx.getMonth() - startIdx.getMonth());
+            if (diffMeses < 0) diffMeses = 0;
+
+            for (let i = 0; i <= diffMeses; i++) {
+                let f = new Date(startIdx.getFullYear(), startIdx.getMonth() + i, 1);
+                let mesStr = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
+                
+                let entradasMes = 0;
+                let salidasMes = 0;
+
+                movs.forEach(m => {
+                    let aplicar = false;
+                    if (!m.recurrente) { if (m.fechaInicio === mesStr) aplicar = true; }
+                    else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) aplicar = true; } }
+                    
+                    if (aplicar) {
+                        if (m.tipo === 'transferencia') {
+                            if (m.cuentaId === cuentaActivaId) salidasMes += m.cantidad;
+                            if (m.cuentaDestinoId === cuentaActivaId) entradasMes += m.cantidad;
+                        } else {
+                            if (m.tipo === 'ingreso') entradasMes += m.cantidad;
+                            else salidasMes += m.cantidad;
+                        }
+                    }
+                });
+
+                balanceSimulado += (entradasMes - salidasMes);
+                listaMeses.push({ mes: mesStr, ingresos: entradasMes, gastos: salidasMes, saldo: balanceSimulado });
+            }
+
+            let mesesHtml = '';
+            const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            
+            listaMeses.reverse().forEach(item => {
+                let [anio, mesNum] = item.mes.split('-');
+                let nombreMesCompacto = `${nombresMeses[parseInt(mesNum)-1]} ${anio}`;
+                mesesHtml += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-semibold text-slate-700">${nombreMesCompacto}</td>
+                        <td class="p-4 text-green-600 font-medium">+${item.ingresos.toFixed(2)} €</td>
+                        <td class="p-4 text-red-600 font-medium">-${item.gastos.toFixed(2)} €</td>
+                        <td class="p-4 font-bold text-slate-900">${item.saldo.toFixed(2)} €</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = mesesHtml || '<tr><td colspan="4" class="p-4 text-center text-slate-400">Sin registros previos en esta cuenta.</td></tr>';
+        }
+
+        async function renderMovimientosActivos() {
+            if (cuentaActivaId === 'ALL') return;
+            const todos = await dbGetAll('movimientos');
+            const filtrados = todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
+            const tbody = document.getElementById('tabla-movimientos-body');
+            tbody.innerHTML = '';
+            
+            document.getElementById('historial-vacio').classList.toggle('hidden', filtrados.length > 0);
+
+            const cuentas = await dbGetAll('cuentas');
+            const nombreCuenta = (id) => { const c = cuentas.find(x => x.id === id); return c ? c.nombre : 'Desconocida'; };
+
+            filtrados.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                
+                let vigencia = '';
+                const esAnual = m.periodicidad === 'anual';
+                const importeOriginal = esAnual ? (m.cantidadOriginal ?? m.cantidad * 12) : m.cantidad;
+
+                if (!m.recurrente) {
+                    vigencia = `<span class="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-500 font-medium">⚡ Puntual</span> ${m.fechaInicio}`;
+                } else {
+                    const periodBadge = esAnual
+                        ? `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-700 font-medium">📅 Anual</span>`
+                        : `<span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">🔁 Mensual</span>`;
+                    vigencia = `${periodBadge} desde ${m.fechaInicio}`;
+                    if (m.tieneLimite && m.fechaFin) vigencia += ` hasta ${m.fechaFin}`;
+                }
+
+                let BadgeTipo = '';
+                let visualImporte = '';
+                
+                if (m.tipo === 'transferencia') {
+                    if (m.cuentaId === cuentaActivaId) {
+                        BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800">TRASPASO (SALIDA)</span>`;
+                        visualImporte = `<td class="p-4 font-bold text-amber-600">-${m.cantidad.toFixed(2)} €</td>`;
+                    } else {
+                        BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800">TRASPASO (ENTRADA)</span>`;
+                        visualImporte = `<td class="p-4 font-bold text-green-600">+${m.cantidad.toFixed(2)} €</td>`;
+                    }
+                } else {
+                    BadgeTipo = `<span class="px-2 py-1 text-xs font-medium rounded-full ${m.tipo === 'ingreso' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}">${m.tipo.toUpperCase()}</span>`;
+                    const signo = m.tipo === 'ingreso' ? '+' : '-';
+                    const colorImporte = m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600';
+                    const desglose = esAnual
+                        ? `<div class="text-xs text-slate-400 mt-0.5">${signo}${m.cantidad.toFixed(2)} €/mes · Anual: ${importeOriginal.toFixed(2)} €</div>`
+                        : '';
+                    visualImporte = `<td class="p-4"><div class="font-bold ${colorImporte}">${signo}${m.cantidad.toFixed(2)} €</div>${desglose}</td>`;
+                }
+
+                let infoConcepto = m.tipo === 'transferencia' ? `Hacia: ${nombreCuenta(m.cuentaDestinoId)}` : m.motivo;
+
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-semibold text-slate-800">${m.concepto}</div>
+                        <div class="text-xs text-slate-400">${infoConcepto}</div>
+                    </td>
+                    <td class="p-4">
+                        ${BadgeTipo}
+                        ${m.esInversion ? '<span class="ml-1 px-2 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">INVERSIÓN</span>' : ''}
+                    </td>
+                    ${visualImporte}
+                    <td class="p-4 text-xs text-slate-500">${vigencia}</td>
+                    <td class="p-4 text-right space-x-2 whitespace-nowrap">
+                        <button onclick="editarMovimientoInPlace(${m.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Editar</button>
+                        <button onclick="eliminarMovimientoInPlace(${m.id})" class="text-red-600 hover:text-red-900 font-medium text-xs">Borrar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function editarMovimientoInPlace(id) {
+            const m = await dbGet('movimientos', id);
+            document.getElementById('mov-id').value = m.id;
+            document.getElementById('mov-cuenta-select').value = m.cuentaId;
+            
+            document.getElementById(`tipo-${m.tipo}`).checked = true;
+            adaptarFormularioPorTipo();
+            
+            if (m.tipo === 'transferencia') {
+                document.getElementById('mov-cuenta-destino-select').value = m.cuentaDestinoId;
+            }
+
+            document.getElementById('mov-motivo').value = m.motivo;
+            document.getElementById('mov-concepto').value = m.concepto;
+            // Si es anual, mostramos el importe original anual en el campo
+            const esAnual = m.periodicidad === 'anual';
+            document.getElementById('mov-cantidad').value = esAnual ? (m.cantidadOriginal ?? m.cantidad * 12) : m.cantidad;
+            document.getElementById('mov-fecha-inicio').value = m.fechaInicio;
+            document.getElementById('mov-recurrente').checked = m.recurrente;
+            document.getElementById('mov-inversion').checked = m.esInversion || false;
+            
+            toggleFechaLimite();
+            // Restaurar periodicidad
+            if (m.recurrente) {
+                const periodEl = document.getElementById(esAnual ? 'period-anual' : 'period-mensual');
+                if (periodEl) periodEl.checked = true;
+            }
+            actualizarLabelCantidad();
+            document.getElementById('mov-tiene-limite').checked = m.tieneLimite;
+            toggleInputLimite();
+            if(m.tieneLimite) document.getElementById('mov-fecha-fin').value = m.fechaFin;
+
+            document.getElementById('form-movimiento-title').innerText = "Editar Transacción";
+            document.getElementById('submit-mov-btn').innerText = "Actualizar Cambios";
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            navigateTo('movimiento');
+        }
+
+        async function eliminarMovimientoInPlace(id) {
+            if (confirm('¿Seguro que deseas eliminar este movimiento activo?')) {
+                await dbDelete('movimientos', id);
+                renderMovimientosActivos();
+            }
+        }
+
+        /* --- 7. LÓGICA DE CUENTAS --- */
+        async function guardarNuevaCuenta(e) {
+            e.preventDefault();
+            const n = document.getElementById('nueva-cuenta-nombre').value;
+            const b = parseFloat(document.getElementById('nueva-cuenta-base').value) || 0;
+            const prop = document.getElementById('nueva-cuenta-propietario').value;
+            const tipo = document.getElementById('nueva-cuenta-tipo').value;
+            const tasa = parseFloat(document.getElementById('nueva-cuenta-tasa').value) || 0;
+            await dbAdd('cuentas', { nombre: n, base: b, propietario: prop, tipo: tipo, tasa_interes: tasa });
+            document.getElementById('nueva-cuenta-nombre').value = ''; document.getElementById('nueva-cuenta-base').value = ''; document.getElementById('nueva-cuenta-tasa').value = '';
+            await cargarSelectorGlobalCuentas(); renderListaCuentas();
+        }
+
+        async function renderListaCuentas() {
+            const cc = await dbGetAll('cuentas'); const l = document.getElementById('lista-cuentas'); l.innerHTML = '';
+            const propLabel = { yo: '👤 Yo', mujer: '👩 Mujer', comun: '👫 Común' };
+            const tipoLabel = { corriente: 'Corriente', ahorro: '💰 Ahorro', inversion: '📈 Inversión' };
+            cc.forEach(c => {
+                const d = document.createElement('div'); d.className = 'flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer';
+                d.onclick = () => abrirModalEditarCuenta(c.id);
+                const propBadge = propLabel[c.propietario] || '—';
+                const tipoBadge = tipoLabel[c.tipo] || 'Corriente';
+                const tasaText = (c.tipo === 'ahorro' || c.tipo === 'inversion') && c.tasa_interes > 0 ? ` · ${c.tasa_interes}% TAE` : '';
+                d.innerHTML = `<div><span class="font-medium text-slate-800">${c.nombre}</span><div class="text-xs text-slate-500 mt-0.5">${propBadge} · ${tipoBadge}${tasaText} · Base: ${(c.base||0).toFixed(2)} €</div></div><button class="text-indigo-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>`;
+                l.appendChild(d);
+            });
+        }
+
+        async function abrirModalEditarCuenta(id) {
+            const c = await dbGet('cuentas', id); 
+            document.getElementById('edit-cuenta-id').value = c.id; 
+            document.getElementById('edit-cuenta-nombre').value = c.nombre; 
+            document.getElementById('edit-cuenta-base').value = c.base;
+            document.getElementById('edit-cuenta-propietario').value = c.propietario || 'yo';
+            document.getElementById('edit-cuenta-tipo').value = c.tipo || 'corriente';
+            document.getElementById('edit-cuenta-tasa').value = c.tasa_interes || 0;
+            toggleEditTasa();
+            document.getElementById('modal-editar-cuenta').classList.remove('hidden');
+        }
+        function cerrarModalEditarCuenta() { document.getElementById('modal-editar-cuenta').classList.add('hidden'); }
+        function toggleEditTasa() {
+            const tipo = document.getElementById('edit-cuenta-tipo').value;
+            const el = document.getElementById('edit-tasa-container');
+            if(el) el.classList.toggle('hidden', tipo === 'corriente');
+        }
+        
+        async function guardarEdicionCuenta() {
+            const id = parseInt(document.getElementById('edit-cuenta-id').value);
+            await dbPut('cuentas', { 
+                id: id, 
+                nombre: document.getElementById('edit-cuenta-nombre').value, 
+                base: parseFloat(document.getElementById('edit-cuenta-base').value) || 0,
+                propietario: document.getElementById('edit-cuenta-propietario').value,
+                tipo: document.getElementById('edit-cuenta-tipo').value,
+                tasa_interes: parseFloat(document.getElementById('edit-cuenta-tasa').value) || 0
+            });
+            cerrarModalEditarCuenta(); await cargarSelectorGlobalCuentas(); renderListaCuentas(); if(id === cuentaActivaId) actualizarTodo();
+        }
+
+        async function eliminarCuenta() {
+            const id = parseInt(document.getElementById('edit-cuenta-id').value); const cc = await dbGetAll('cuentas');
+            if (cc.length <= 1) { mostrarMensaje('Error', 'Debe quedar al menos una cuenta activa.'); return; }
+            if (confirm('¿Eliminar cuenta y todas sus reglas asociadas?')) {
+                await dbDelete('cuentas', id);
+                const todos = await dbGetAll('movimientos');
+                for (const m of todos) { if(m.cuentaId === id || m.cuentaDestinoId === id) await dbDelete('movimientos', m.id); }
+                cerrarModalEditarCuenta(); await cargarSelectorGlobalCuentas();
+                if (cuentaActivaId === id) cuentaActivaId = (await dbGetAll('cuentas'))[0].id;
+                cambiarCuentaActiva(cuentaActivaId);
+            }
+        }
+
+        /* --- 8. CENTRALIZACIÓN Y CÁLCULOS DEL MOTOR FINANCIERO --- */
+        async function actualizarTodo() {
+            if (!cuentaActivaId) return;
+            
+            const todasCuentas = await dbGetAll('cuentas');
+            let cuentasData = [];
+            if (cuentaActivaId === 'ALL') {
+                cuentasData = filtroVistaPropietario === 'ALL' ? todasCuentas : todasCuentas.filter(c => c.propietario === filtroVistaPropietario || !c.propietario);
+            } else {
+                const c = await dbGet('cuentas', cuentaActivaId);
+                if (c) cuentasData.push(c);
+            }
+            if (cuentasData.length === 0) return;
+
+            const cuentasIds = new Set(cuentasData.map(c => c.id));
+            // Mapa de id -> cuenta para lookup de tipo y tasa
+            const cuentaMap = {};
+            todasCuentas.forEach(c => { cuentaMap[c.id] = c; });
+
+            // La base será la suma de todas las cuentas elegidas
+            let baseTotal = cuentasData.reduce((sum, c) => sum + (parseFloat(c.base) || 0), 0);
+
+            const todos = await dbGetAll('movimientos');
+            const movs = cuentaActivaId === 'ALL' 
+                ? todos.filter(m => cuentasIds.has(m.cuentaId) || cuentasIds.has(m.cuentaDestinoId))
+                : todos.filter(m => m.cuentaId === cuentaActivaId || m.cuentaDestinoId === cuentaActivaId);
+
+            const hoy = new Date();
+            const mesHoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+            const labels = [];
+            const data = [];
+            let acumulado = baseTotal;
+            let saldoMesActual = null;
+
+            let totalIngresos = 0;
+            let totalGastos = 0;
+            const barLabels = [];
+            const barIngresos = [];
+            const barGastos = [];
+            const heatmapData = [];
+
+            const categoriasGasto = {};
+            const stackedLabels = [];
+            const wfMovs = [];
+            let wfSaldoInicial = acumulado;
+
+            const limiteMeses = aniosProyeccion * 12;
+            // Interés compuesto global (del input) - si 0, se usan tasas por cuenta
+            const tasaGlobalMensual = interesCompuestoMensual / 100;
+
+            // Calcular aportaciones a ahorro/inversión mensuales (para runway ajustado)
+            let totalAportacionesAhorroMensual = 0;
+
+            for (let i = 0; i <= limiteMeses; i++) {
+                let fechaActual = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+                let mesStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`;
+                
+                let ingresosMes = 0;
+                let gastosMes = 0;
+                let ahorroMes = 0; // aportaciones a ahorro/inversión (no son gasto real)
+                const movsMes = [];
+
+                movs.forEach(m => {
+                    let esValido = false;
+                    if (!m.recurrente) {
+                        if (mesStr === m.fechaInicio) esValido = true;
+                    } else {
+                        if (mesStr >= m.fechaInicio) {
+                            if (m.tieneLimite && m.fechaFin) { if (mesStr <= m.fechaFin) esValido = true; }
+                            else esValido = true;
+                        }
+                    }
+                    
+                    if (esValido) {
+                        if (m.tipo === 'transferencia') {
+                            if (cuentaActivaId !== 'ALL') {
+                                // En cuenta individual: mostrar como movimiento de liquidez
+                                if (m.cuentaId === cuentaActivaId) gastosMes += m.cantidad;
+                                if (m.cuentaDestinoId === cuentaActivaId) ingresosMes += m.cantidad;
+                            } else {
+                                // En vista ALL: las transferencias entre cuentas del mismo propietario NO afectan al neto
+                                // Solo si la cuenta destino es de ahorro/inversión, se registra como aportación (no gasto)
+                                const cuentaDest = cuentaMap[m.cuentaDestinoId];
+                                const cuentaOrig = cuentaMap[m.cuentaId];
+                                const origenEnVista = cuentasIds.has(m.cuentaId);
+                                const destinoEnVista = cuentasIds.has(m.cuentaDestinoId);
+                                if (origenEnVista && !destinoEnVista) {
+                                    // Sale de nuestras cuentas hacia otra fuera del filtro → gasto
+                                    gastosMes += m.cantidad;
+                                } else if (!origenEnVista && destinoEnVista) {
+                                    // Entra desde fuera → ingreso
+                                    ingresosMes += m.cantidad;
+                                }
+                                // Si ambos están en vista: transferencia interna, neto = 0 (ya correcto)
+                            }
+                        } else {
+                            if (m.tipo === 'ingreso') {
+                                ingresosMes += m.cantidad;
+                            } else {
+                                // Es gasto: comprobar si va a cuenta de ahorro/inversión (traspaso)
+                                const esMov = m.esInversion || false;
+                                // Aportaciones de inversión marcadas: no suman al gasto "real"
+                                if (esMov) {
+                                    ahorroMes += m.cantidad; // contabilizado en ahorro, no en gasto para runway
+                                }
+                                gastosMes += m.cantidad;
+                            }
+                        }
+                        if (mesStr === mesHoyStr) movsMes.push(m);
+                    }
+                });
+
+                // Sumar interés compuesto por cuenta (si la tasa global es 0, usar tasas individuales)
+                let interesDevengado = 0;
+                if (i > 0) {
+                    if (tasaGlobalMensual > 0) {
+                        interesDevengado = acumulado * tasaGlobalMensual;
+                    } else {
+                        // Interés per-cuenta de ahorro/inversión
+                        cuentasData.forEach(c => {
+                            if ((c.tipo === 'ahorro' || c.tipo === 'inversion') && c.tasa_interes > 0) {
+                                const tasaMensualCuenta = (c.tasa_interes / 100) / 12;
+                                interesDevengado += (parseFloat(c.base) || 0) * tasaMensualCuenta;
+                            }
+                        });
+                    }
+                }
+
+                const variacionMes = ingresosMes - gastosMes + interesDevengado;
+                const saldoAntesDeMes = acumulado;
+                acumulado += variacionMes;
+
+                if (i === 1) totalAportacionesAhorroMensual = ahorroMes; // mes más próximo
+
+                labels.push(mesStr);
+                data.push(acumulado);
+                totalIngresos += ingresosMes;
+                totalGastos += gastosMes;
+                heatmapData.push({ mesStr, neto: variacionMes });
+
+                if (i > 0 && i <= 12) {
+                    const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                    barLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+                    barIngresos.push(ingresosMes);
+                    barGastos.push(gastosMes);
+                    stackedLabels.push(nm[fechaActual.getMonth()] + ' ' + String(fechaActual.getFullYear()).slice(2));
+                    
+                    movs.forEach(m => {
+                        if (m.tipo !== 'gasto') return; 
+                        let esValidoGasto = false;
+                        if (!m.recurrente) { if (mesStr === m.fechaInicio) esValidoGasto = true; }
+                        else { if (mesStr >= m.fechaInicio) { if (!m.tieneLimite || (m.fechaFin && mesStr <= m.fechaFin)) esValidoGasto = true; } }
+                        
+                        if (esValidoGasto) {
+                            if (!categoriasGasto[m.motivo]) categoriasGasto[m.motivo] = new Array(12).fill(0);
+                            categoriasGasto[m.motivo][i - 1] += m.cantidad;
+                        }
+                    });
+                }
+
+                if (mesStr === mesHoyStr) {
+                    saldoMesActual = acumulado;
+                    wfSaldoInicial = saldoAntesDeMes;
+                    movsMes.forEach(m => wfMovs.push(m));
+                }
+            }
+
+            const saldoMostrar = saldoMesActual !== null ? saldoMesActual : data[0];
+            document.getElementById('dash-saldo-actual').innerText = saldoMostrar.toFixed(2) + ' €';
+
+            const ingMesActual = barIngresos[0] || 0;
+            const gastMesActual = barGastos[0] || 0;
+            const tasaAhorro = ingMesActual > 0 ? Math.max(0, Math.min(100, ((ingMesActual - gastMesActual) / ingMesActual) * 100)) : 0;
+            renderGauge(tasaAhorro, ingMesActual, gastMesActual);
+
+            const gastoMedioMensual = totalGastos > 0 ? totalGastos / limiteMeses : 0;
+            // Runway ajustado: excluye aportaciones voluntarias a ahorro/inversión del gasto mensual
+            const gastoEsencialMensual = Math.max(0, gastoMedioMensual - totalAportacionesAhorroMensual);
+            const runway = gastoMedioMensual > 0 ? Math.floor(saldoMostrar / gastoMedioMensual) : null;
+            const runwayAjustado = gastoEsencialMensual > 0 ? Math.floor(saldoMostrar / gastoEsencialMensual) : null;
+            renderRunway(runway, runwayAjustado, gastoEsencialMensual !== gastoMedioMensual);
+            renderFondoEmergencia(saldoMostrar, gastoMedioMensual);
+
+            const alertaEl = document.getElementById('alerta-deficit');
+            if (ingMesActual > 0 && gastMesActual / ingMesActual > 0.8) {
+                document.getElementById('alerta-deficit-texto').textContent = `Tus egresos representan el ${Math.round((gastMesActual / ingMesActual) * 100)}% de tus ingresos este mes.`;
+                alertaEl.classList.add('visible');
+            } else {
+                alertaEl.classList.remove('visible');
+            }
+
+            renderChart(labels, data);
+            renderPieChart(totalIngresos, totalGastos);
+            renderBarChart(barLabels, barIngresos, barGastos);
+            renderWaterfall(wfSaldoInicial, wfMovs);
+            renderHeatmap(heatmapData);
+            renderStackedArea(stackedLabels, categoriasGasto);
+
+            // Actualizar patrimonio en bloque de cuentas por propietario
+            renderPatrimonioBloque(todasCuentas);
+
+            // Actualizar widget de sobres virtuales
+            await renderWidgetSobresDashboard(saldoMostrar);
+        }
+
+        /* --- 9. RENDERIZACIÓN DE COMPONENTES DE GRÁFICOS (CHART.JS) --- */
+        function renderChart(labels, data) {
+            const ctx = document.getElementById('projectionChart').getContext('2d'); if (currentChart) currentChart.destroy();
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)'); gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+            currentChart = new Chart(ctx, {
+                type: 'line', data: { labels: labels, datasets: [{ label: 'Saldo Proyectado (€)', data: data, borderColor: '#4f46e5', backgroundColor: gradient, borderWidth: 3, pointRadius: 0, fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }, y: { grid: { color: '#f1f5f9' } } }, interaction: { mode: 'index', intersect: false } }
+            });
+        }
+
+        function renderPieChart(totalIngresos, totalGastos) {
+            const ctx = document.getElementById('pieChart').getContext('2d'); if (currentPieChart) currentPieChart.destroy();
+            const sinDatos = totalIngresos === 0 && totalGastos === 0;
+            currentPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: sinDatos ? ['Sin datos'] : ['Ingresos Totales', 'Gastos Totales'],
+                    datasets: [{ data: sinDatos ? [1] : [totalIngresos, totalGastos], backgroundColor: sinDatos ? ['#e2e8f0'] : ['#22c55e', '#f43f5e'], borderColor: sinDatos ? ['#cbd5e1'] : ['#16a34a', '#e11d48'], borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function renderBarChart(labels, ingresos, gastos) {
+            const ctx = document.getElementById('barChart').getContext('2d'); if (currentBarChart) currentBarChart.destroy();
+            currentBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels, datasets: [
+                    { label: 'Ingresos (€)', data: ingresos, backgroundColor: 'rgba(34, 197, 94, 0.75)', borderColor: '#16a34a', borderWidth: 1.5 },
+                    { label: 'Gastos (€)', data: gastos, backgroundColor: 'rgba(244, 63, 94, 0.75)', borderColor: '#e11d48', borderWidth: 1.5 }
+                ]},
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        datalabels: false,
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} €`
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Rellenar tabla numérica
+            const tbody = document.getElementById('tabla-mensual-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            let sumIng = 0, sumGas = 0;
+            labels.forEach((mes, i) => {
+                const ing = ingresos[i] || 0;
+                const gas = gastos[i] || 0;
+                const neto = ing - gas;
+                sumIng += ing; sumGas += gas;
+                const netoColor = neto >= 0 ? 'text-green-600' : 'text-red-600';
+                const netoSigno = neto >= 0 ? '+' : '';
+                tbody.innerHTML += `<tr class="hover:bg-slate-50">
+                    <td class="p-2 font-medium text-slate-700">${mes}</td>
+                    <td class="p-2 text-right text-green-600 font-medium">+${ing.toFixed(2)} €</td>
+                    <td class="p-2 text-right text-red-500 font-medium">-${gas.toFixed(2)} €</td>
+                    <td class="p-2 text-right font-bold ${netoColor}">${netoSigno}${neto.toFixed(2)} €</td>
+                </tr>`;
+            });
+            const netoAnual = sumIng - sumGas;
+            const netoAnualColor = netoAnual >= 0 ? 'text-green-700' : 'text-red-700';
+            document.getElementById('total-anual-ingresos').textContent = `+${sumIng.toFixed(2)} €`;
+            document.getElementById('total-anual-gastos').textContent = `-${sumGas.toFixed(2)} €`;
+            const netoEl = document.getElementById('total-anual-neto');
+            netoEl.textContent = `${netoAnual >= 0 ? '+' : ''}${netoAnual.toFixed(2)} €`;
+            netoEl.className = `p-2 text-right font-bold ${netoAnualColor}`;
+        }
+
+        function renderWaterfall(saldoInicial, movimientos) {
+            const ctx = document.getElementById('waterfallChart').getContext('2d'); if (currentWaterfallChart) currentWaterfallChart.destroy();
+            const wfLabels = ['Saldo inicial']; const wfBase = [0]; const wfAltura = [saldoInicial]; const wfColores = ['rgba(79,70,229,0.75)'];
+            let acum = saldoInicial;
+            
+            movimientos.forEach(m => {
+                let val = 0;
+                if (m.tipo === 'transferencia') {
+                    if (cuentaActivaId !== 'ALL') {
+                        val = m.cuentaId === cuentaActivaId ? -m.cantidad : m.cantidad;
+                    }
+                } else {
+                    val = m.tipo === 'ingreso' ? m.cantidad : -m.cantidad;
+                }
+                
+                if (val !== 0) {
+                    wfLabels.push(m.concepto.slice(0, 12));
+                    wfBase.push(val >= 0 ? acum : acum + val);
+                    wfAltura.push(Math.abs(val));
+                    wfColores.push(val >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(244,63,94,0.8)');
+                    acum += val;
+                }
+            });
+            wfLabels.push('Saldo final'); wfBase.push(0); wfAltura.push(acum); wfColores.push('rgba(79,70,229,0.9)');
+
+            currentWaterfallChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: wfLabels, datasets: [{ label: 'Base', data: wfBase, backgroundColor: 'transparent', stack: 'wf' }, { label: 'Importe', data: wfAltura, backgroundColor: wfColores, stack: 'wf' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderGauge(pct, ingresos, gastos) {
+            const path = document.getElementById('gauge-fill-path'); const text = document.getElementById('gauge-pct-text');
+            if (!path) return;
+            const offset = 251.2 - (251.2 * pct / 100); path.style.strokeDashoffset = offset;
+            const color = pct >= 20 ? '#22c55e' : pct >= 5 ? '#f59e0b' : '#ef4444'; path.style.stroke = color;
+            text.textContent = Math.round(pct) + '%'; text.style.fill = color;
+            document.getElementById('dash-ahorro-label').textContent = ingresos === 0 ? 'Sin ingresos' : `Ahorrado: ${(ingresos - gastos).toFixed(0)} €`;
+        }
+
+        function renderRunway(meses, mesesAjustados, hayAjuste) {
+            const valor = document.getElementById('dash-runway-valor'); const barra = document.getElementById('dash-runway-barra');
+            const label = document.getElementById('dash-runway-label');
+            if (meses === null || meses < 0) { valor.textContent = '∞'; barra.style.width = '100%'; barra.style.background = '#22c55e'; return; }
+            valor.textContent = meses; barra.style.width = Math.min(100, (meses / 24) * 100) + '%';
+            barra.style.background = meses >= 6 ? '#22c55e' : meses >= 3 ? '#f59e0b' : '#ef4444';
+            if (hayAjuste && mesesAjustados !== null && mesesAjustados !== meses) {
+                label.innerHTML = `Sin ingresos, aguantas este tiempo<br><span class="text-xs font-bold text-indigo-500">Ajustado (sin ahorro voluntario): ${mesesAjustados} meses</span>`;
+            } else {
+                label.textContent = 'Sin ingresos, aguantas este tiempo';
+            }
+        }
+
+        function renderFondoEmergencia(saldo, gastoMedioMensual) {
+            const meses = gastoMedioMensual > 0 ? saldo / gastoMedioMensual : 0;
+            const pct = Math.min(100, (meses / 6) * 100);
+            document.getElementById('fondo-texto').textContent = `${Math.max(0, meses).toFixed(1)} de 6 meses`;
+            document.getElementById('fondo-pct').textContent = Math.round(pct) + '%';
+            document.getElementById('fondo-barra').style.width = pct + '%';
+            document.getElementById('fondo-semaforo').textContent = pct >= 100 ? '🟢' : pct >= 50 ? '🟡' : '🔴';
+        }
+
+        function renderHeatmap(heatmapData) {
+            const container = document.getElementById('heatmap-container'); if (!container) return;
+            const porAnio = {}; heatmapData.forEach(d => { const [a, m] = d.mesStr.split('-'); if (!porAnio[a]) porAnio[a] = {}; porAnio[a][parseInt(m)-1] = d.neto; });
+            let html = '<table class="w-full border-separate" style="border-spacing:3px"><tbody>';
+            Object.keys(porAnio).sort().forEach(a => {
+                html += `<tr><td class="text-xs font-bold pr-2">${a}</td>`;
+                for (let m = 0; m < 12; m++) {
+                    const v = porAnio[a][m] || 0;
+                    const color = v > 0 ? `rgba(34,197,94,${Math.min(1, v/5000)})` : v < 0 ? `rgba(244,63,94,${Math.min(1, Math.abs(v)/5000)})` : '#e2e8f0';
+                    html += `<td style="background:${color}; height:20px;" class="heatmap-cell" title="${v.toFixed(2)} €"></td>`;
+                }
+                html += '</tr>';
+            });
+            container.innerHTML = html + '</tbody></table>';
+        }
+
+        function renderStackedArea(labels, categoriasGasto) {
+            const ctx = document.getElementById('stackedAreaChart').getContext('2d'); if (currentStackedChart) currentStackedChart.destroy();
+            const cats = Object.keys(categoriasGasto); if(cats.length === 0) return;
+            const palette = ['#6366f1','#f43f5e','#f59e0b','#10b981','#3b82f6'];
+            const datasets = cats.map((c, idx) => ({ label: c, data: categoriasGasto[c], backgroundColor: palette[idx % palette.length], fill: true }));
+            currentStackedChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { stacked: true } } } });
+        }
+
+        function abrirHelp(t, b) { document.getElementById('help-modal-title').innerText = t; document.getElementById('help-modal-body').innerText = b; document.getElementById('help-modal').classList.add('open'); }
+        function cerrarHelpModal() { document.getElementById('help-modal').classList.remove('open'); }
+
+        /* --- 10. IMPORTACIÓN / EXPORTACIÓN Y COPIA DE SEGURIDAD --- */
+        async function exportarDatos() {
+            const cc = await dbGetAll('cuentas'); const mm = await dbGetAll('movimientos'); const pp = await dbGetAll('pagosAnuales');
+            const blob = new Blob([JSON.stringify({ cuentas: cc, movimientos: mm, pagosAnuales: pp })], { type: 'application/json' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `finanzas_backup.json`; a.click();
+        }
+        async function importarDatos(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = async (evt) => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (data.cuentas && data.movimientos) {
+                        await dbClear('cuentas'); await dbClear('movimientos');
+                        if (data.pagosAnuales) await dbClear('pagosAnuales');
+                        for (let c of data.cuentas) await dbAdd('cuentas', c);
+                        for (let m of data.movimientos) await dbAdd('movimientos', m);
+                        if (data.pagosAnuales) for (let p of data.pagosAnuales) await dbAdd('pagosAnuales', p);
+                        mostrarMensaje('Éxito', 'Estructura importada correctamente.');
+                        await cargarSelectorGlobalCuentas(); actualizarTodo();
+                    }
+                } catch { mostrarMensaje('Error', 'Archivo JSON corrupto o no válido.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleNuevaTasa() {
+            const tipo = document.getElementById('nueva-cuenta-tipo').value;
+            const el = document.getElementById('nueva-tasa-container');
+            if(el) el.classList.toggle('hidden', tipo === 'corriente');
+        }
+
+        function renderPatrimonioBloque(cuentas) {
+            const el = document.getElementById('patrimonio-bloque');
+            if(!el) return;
+            const propietarios = [
+                { key: 'yo', label: '👤 Yo', color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+                { key: 'mujer', label: '👩 Mujer', color: 'bg-pink-50 border-pink-200 text-pink-700' },
+                { key: 'comun', label: '👫 Común', color: 'bg-amber-50 border-amber-200 text-amber-700' }
+            ];
+            el.innerHTML = propietarios.map(p => {
+                const cuentasProp = cuentas.filter(c => (c.propietario || 'yo') === p.key);
+                const total = cuentasProp.reduce((sum, c) => sum + (parseFloat(c.base)||0), 0);
+                const cuentasAhorro = cuentasProp.filter(c => c.tipo === 'ahorro' || c.tipo === 'inversion');
+                const tasaMedia = cuentasAhorro.length > 0 ? (cuentasAhorro.reduce((s,c) => s+(parseFloat(c.tasa_interes)||0),0)/cuentasAhorro.length) : 0;
+                return `<div class="p-4 rounded-xl border ${p.color} flex flex-col gap-1">
+                    <p class="text-sm font-semibold">${p.label}</p>
+                    <p class="text-2xl font-bold">${total.toFixed(2)} €</p>
+                    <p class="text-xs opacity-70">${cuentasProp.length} cuenta${cuentasProp.length!==1?'s':''}</p>
+                    ${tasaMedia > 0 ? `<p class="text-xs font-medium">TAE media: ${tasaMedia.toFixed(2)}%</p>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        /* ================================================================
+         * DOMINIO: SOBRES VIRTUALES — Provisión Automática
+         * Clean Architecture: Use Cases aislados de la UI
+         * ================================================================ */
+
+        /**
+         * Entity: AnnualPayment
+         * @typedef {{ id: number, name: string, totalAmount: number, dueDate: string, cycleStartDate: string, isActive: boolean }} AnnualPayment
+         */
+
+        /**
+         * ProvisionGoal (calculado, no persiste en DB)
+         * Devuelve el estado derivado de un AnnualPayment a la fecha actual.
+         * @param {AnnualPayment} payment
+         * @returns {{ monthlyProvision: number, accumulatedAmount: number, remainingMonths: number, progressPct: number }}
+         */
+        function calculateProvisionGoal(payment) {
+            const hoy = new Date();
+            const inicio = new Date(payment.cycleStartDate);
+            const vencimiento = new Date(payment.dueDate);
+
+            // Meses totales del ciclo (al menos 1)
+            const mesesCiclo = Math.max(1,
+                (vencimiento.getFullYear() - inicio.getFullYear()) * 12 +
+                (vencimiento.getMonth() - inicio.getMonth())
+            );
+
+            const monthlyProvision = payment.totalAmount / mesesCiclo;
+
+            // Meses transcurridos desde inicio del ciclo (mínimo 0)
+            const mesesTranscurridos = Math.max(0, Math.min(mesesCiclo,
+                (hoy.getFullYear() - inicio.getFullYear()) * 12 +
+                (hoy.getMonth() - inicio.getMonth())
+            ));
+
+            const accumulatedAmount = monthlyProvision * mesesTranscurridos;
+            const remainingMonths = Math.max(0, mesesCiclo - mesesTranscurridos);
+            const progressPct = mesesCiclo > 0 ? Math.min(100, (mesesTranscurridos / mesesCiclo) * 100) : 0;
+
+            return { monthlyProvision, accumulatedAmount, remainingMonths, progressPct, mesesCiclo, mesesTranscurridos };
+        }
+
+        /**
+         * USE CASE: CalculateCommittedBalanceUseCase
+         * Suma el accumulatedAmount de todos los pagos anuales activos.
+         * @param {AnnualPayment[]} payments
+         * @returns {number} totalComprometido
+         */
+        function calculateCommittedBalance(payments) {
+            return payments
+                .filter(p => p.isActive)
+                .reduce((total, p) => total + calculateProvisionGoal(p).accumulatedAmount, 0);
+        }
+
+        /**
+         * USE CASE: CalculateAvailableBalanceUseCase
+         * @param {number} realBalance  – saldo real de cuentas
+         * @param {number} committed    – resultado de calculateCommittedBalance
+         * @returns {number} disponible
+         */
+        function calculateAvailableBalance(realBalance, committed) {
+            return realBalance - committed;
+        }
+
+        /**
+         * USE CASE: ExecuteAnnualPaymentUseCase
+         * Registra el gasto real y reinicia el ciclo del sobre al año siguiente.
+         * @param {AnnualPayment} payment
+         * @param {number} cuentaId
+         */
+        async function executeAnnualPayment(payment, cuentaId) {
+            const hoy = new Date();
+            const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+
+            // 1. Registrar el gasto real en movimientos
+            await dbAdd('movimientos', {
+                cuentaId: cuentaId,
+                cuentaDestinoId: null,
+                tipo: 'gasto',
+                motivo: 'Pago Anual (Sobre Virtual)',
+                concepto: payment.name,
+                cantidad: payment.totalAmount,
+                cantidadOriginal: payment.totalAmount,
+                periodicidad: 'mensual',
+                fechaInicio: mesActual,
+                recurrente: false,
+                esInversion: false,
+                tieneLimite: false,
+                fechaFin: null
+            });
+
+            // 2. Reiniciar el ciclo: nuevo inicio = hoy, nuevo vencimiento = +12 meses
+            const nuevaFechaInicio = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
+            const proxAnio = new Date(hoy.getFullYear() + 1, hoy.getMonth(), 1);
+            const nuevaFechaVenc = `${proxAnio.getFullYear()}-${String(proxAnio.getMonth() + 1).padStart(2, '0')}-01`;
+
+            await dbPut('pagosAnuales', {
+                ...payment,
+                cycleStartDate: nuevaFechaInicio,
+                dueDate: nuevaFechaVenc
+            });
+        }
+
+        /* ================================================================
+         * UI HANDLERS: SOBRES VIRTUALES
+         * ================================================================ */
+
+        // Pre-calcular preview mientras el usuario rellena el formulario
+        ['sobre-importe', 'sobre-vencimiento', 'sobre-inicio'].forEach(id => {
+            // Defer hasta que el DOM esté listo
+            document.addEventListener('DOMContentLoaded', () => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', actualizarPreviewSobre);
+            });
+        });
+
+        function actualizarPreviewSobre() {
+            const importe = parseFloat(document.getElementById('sobre-importe').value) || 0;
+            const venc = document.getElementById('sobre-vencimiento').value;
+            const inicio = document.getElementById('sobre-inicio').value;
+            const prev = document.getElementById('sobre-preview');
+            const txt = document.getElementById('sobre-preview-text');
+            if (!importe || !venc || !inicio) { prev.classList.add('hidden'); return; }
+
+            const goal = calculateProvisionGoal({ totalAmount: importe, dueDate: venc, cycleStartDate: inicio });
+            txt.textContent = `Provisión mensual: ${goal.monthlyProvision.toFixed(2)} €/mes durante ${goal.mesesCiclo} meses · Ya acumulado: ${goal.accumulatedAmount.toFixed(2)} € · Quedan ${goal.remainingMonths} meses`;
+            prev.classList.remove('hidden');
+        }
+
+        async function guardarSobre() {
+            const nombre = document.getElementById('sobre-nombre').value.trim();
+            const importe = parseFloat(document.getElementById('sobre-importe').value);
+            const vencimiento = document.getElementById('sobre-vencimiento').value;
+            const inicio = document.getElementById('sobre-inicio').value;
+
+            if (!nombre || !importe || !vencimiento || !inicio) {
+                mostrarMensaje('Datos incompletos', 'Rellena todos los campos del sobre.'); return;
+            }
+            if (inicio >= vencimiento) {
+                mostrarMensaje('Fechas inválidas', 'La fecha de inicio debe ser anterior al vencimiento.'); return;
+            }
+
+            await dbAdd('pagosAnuales', {
+                name: nombre,
+                totalAmount: importe,
+                dueDate: vencimiento,
+                cycleStartDate: inicio,
+                isActive: true
+            });
+
+            document.getElementById('sobre-nombre').value = '';
+            document.getElementById('sobre-importe').value = '';
+            document.getElementById('sobre-vencimiento').value = '';
+            document.getElementById('sobre-inicio').value = '';
+            document.getElementById('sobre-preview').classList.add('hidden');
+
+            await renderSobres();
+            actualizarTodo();
+            mostrarMensaje('Sobre creado', `El sobre "${nombre}" se ha creado. Apartarás ${(importe/12).toFixed(2)} €/mes.`);
+        }
+
+        async function renderSobres() {
+            const pagos = await dbGetAll('pagosAnuales');
+            const cuentas = await dbGetAll('cuentas');
+            const saldoReal = cuentas.reduce((s, c) => s + (parseFloat(c.base)||0), 0);
+
+            // Balances en la vista de sobres
+            const comprometido = calculateCommittedBalance(pagos);
+            const disponible = calculateAvailableBalance(saldoReal, comprometido);
+            document.getElementById('sobres-saldo-real').textContent = saldoReal.toFixed(2) + ' €';
+            document.getElementById('sobres-comprometido').textContent = comprometido.toFixed(2) + ' €';
+            document.getElementById('sobres-disponible').textContent = disponible.toFixed(2) + ' €';
+
+            const lista = document.getElementById('sobres-lista');
+            if (!lista) return;
+
+            const activos = pagos.filter(p => p.isActive);
+            if (activos.length === 0) {
+                lista.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">No hay sobres activos. Crea uno arriba.</p>';
+                return;
+            }
+
+            lista.innerHTML = activos.map(p => {
+                const g = calculateProvisionGoal(p);
+                const alerta = saldoReal < comprometido;
+                const vencCercano = g.remainingMonths <= 2;
+                const borderColor = alerta ? 'border-red-200' : vencCercano ? 'border-amber-200' : 'border-slate-100';
+                const badgeColor = alerta ? 'bg-red-100 text-red-700' : vencCercano ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
+                const badgeText = alerta ? '🔴 En riesgo' : vencCercano ? '🟡 Vence pronto' : '🟢 Al día';
+                const pct = g.progressPct.toFixed(0);
+                const barColor = alerta ? '#ef4444' : vencCercano ? '#f59e0b' : '#22c55e';
+
+                return `<div class="bg-white rounded-xl border ${borderColor} shadow-sm p-5">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-800">${p.name}</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Vence: ${p.dueDate} · ${g.remainingMonths} meses restantes</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full font-medium ${badgeColor}">${badgeText}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                        <div class="bg-slate-50 rounded-lg p-2">
+                            <p class="text-xs text-slate-500">Total anual</p>
+                            <p class="font-bold text-slate-800 text-sm">${p.totalAmount.toFixed(2)} €</p>
+                        </div>
+                        <div class="bg-indigo-50 rounded-lg p-2">
+                            <p class="text-xs text-indigo-600">Provisión/mes</p>
+                            <p class="font-bold text-indigo-700 text-sm">${g.monthlyProvision.toFixed(2)} €</p>
+                        </div>
+                        <div class="bg-amber-50 rounded-lg p-2">
+                            <p class="text-xs text-amber-600">Apartado hoy</p>
+                            <p class="font-bold text-amber-700 text-sm">${g.accumulatedAmount.toFixed(2)} €</p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Progreso del ciclo</span><span>${pct}%</span>
+                        </div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%;background:${barColor}"></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <button onclick="abrirModalPago(${p.id})" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">✓ Registrar Pago</button>
+                        <button onclick="eliminarSobre(${p.id})" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-red-50 hover:text-red-600 transition-colors">Eliminar</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function eliminarSobre(id) {
+            if (!confirm('¿Eliminar este sobre? No se registrará ningún pago.')) return;
+            await dbDelete('pagosAnuales', id);
+            await renderSobres();
+            actualizarTodo();
+        }
+
+        async function abrirModalPago(id) {
+            const p = await dbGet('pagosAnuales', id);
+            document.getElementById('modal-sobre-id').value = id;
+            document.getElementById('modal-sobre-nombre-label').textContent = p.name;
+            document.getElementById('modal-sobre-importe-label').textContent = `Importe a registrar: ${p.totalAmount.toFixed(2)} €`;
+
+            const sel = document.getElementById('modal-sobre-cuenta');
+            const cuentas = await dbGetAll('cuentas');
+            sel.innerHTML = cuentas.map(c => `<option value="${c.id}">${c.nombre} (${(c.base||0).toFixed(2)} €)</option>`).join('');
+
+            document.getElementById('modal-ejecutar-pago').classList.remove('hidden');
+        }
+
+        function cerrarModalPago() { document.getElementById('modal-ejecutar-pago').classList.add('hidden'); }
+
+        async function ejecutarPagoAnual() {
+            const id = parseInt(document.getElementById('modal-sobre-id').value);
+            const cuentaId = parseInt(document.getElementById('modal-sobre-cuenta').value);
+            const pago = await dbGet('pagosAnuales', id);
+
+            await executeAnnualPayment(pago, cuentaId);
+            cerrarModalPago();
+            await renderSobres();
+            actualizarTodo();
+            mostrarMensaje('Pago registrado ✓', `El gasto de ${pago.totalAmount.toFixed(2)} € ha sido registrado. El ciclo del sobre se ha reiniciado para el próximo año.`);
+        }
+
+        /* Renderiza el widget de sobres en el dashboard */
+        async function renderWidgetSobresDashboard(saldoReal) {
+            const pagos = await dbGetAll('pagosAnuales');
+            const activos = pagos.filter(p => p.isActive);
+            const comprometido = calculateCommittedBalance(activos);
+            const disponible = calculateAvailableBalance(saldoReal, comprometido);
+
+            // Actualizar tarjetas del dashboard
+            document.getElementById('dash-saldo-comprometido').textContent = comprometido.toFixed(2) + ' €';
+            document.getElementById('dash-sobres-count').textContent = `${activos.length} sobre${activos.length !== 1 ? 's' : ''} activo${activos.length !== 1 ? 's' : ''} · Ver detalle →`;
+            document.getElementById('dash-saldo-disponible').textContent = disponible.toFixed(2) + ' €';
+
+            const enRiesgo = saldoReal < comprometido;
+            document.getElementById('dash-sobres-semaforo').textContent = enRiesgo ? '🔴' : '🟢';
+            document.getElementById('dash-saldo-disponible-label').textContent = enRiesgo
+                ? '⚠️ Saldo real insuficiente para cubrir compromisos'
+                : `= ${saldoReal.toFixed(2)} € − ${comprometido.toFixed(2)} €`;
+
+            // Lista semáforo en widget
+            const listaEl = document.getElementById('sobres-lista-dashboard');
+            if (!listaEl) return;
+
+            if (activos.length === 0) {
+                listaEl.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">No hay sobres activos. <button onclick="navigateTo(\'sobres\')" class="text-indigo-600 underline">Crear uno →</button></p>';
+                return;
+            }
+
+            const hoy = new Date();
+            listaEl.innerHTML = activos.map(p => {
+                const g = calculateProvisionGoal(p);
+                const vencCercano = g.remainingMonths <= 2;
+                const emoji = enRiesgo ? '🔴' : vencCercano ? '🟡' : '🟢';
+                return `<div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                    <div class="flex items-center gap-2">
+                        <span>${emoji}</span>
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">${p.name}</p>
+                            <p class="text-xs text-slate-400">${g.monthlyProvision.toFixed(2)} €/mes · ${g.remainingMonths} meses para vencimiento</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-amber-600">${g.accumulatedAmount.toFixed(2)} €</p>
+                        <p class="text-xs text-slate-400">de ${p.totalAmount.toFixed(2)} €</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        /* ================================================================
+         * SIMULADOR — Amortizar reduciendo PLAZO (misma cuota)
+         * v2: usa fechas reales, muestra cuotas actuales y tras amortizar,
+         * fecha de última cuota en ambos escenarios, desglose del coste
+         * real de amortizar (capital + interés devengado del mes), y
+         * la comparativa de inversión usa SU PROPIO horizonte independiente.
+         * ================================================================ */
+        let simChart = null;
+
+        function mesesEntreFechas(fechaIni, fechaFin) {
+            // fechaIni y fechaFin son strings 'YYYY-MM'
+            const [ay, am] = fechaIni.split('-').map(Number);
+            const [by, bm] = fechaFin.split('-').map(Number);
+            return (by - ay) * 12 + (bm - am) + 1; // +1: la última cuota también cuenta
+        }
+
+        function sumarMeses(fechaStr, n) {
+            // Devuelve 'YYYY-MM' sumando n meses a fechaStr
+            const [y, m] = fechaStr.split('-').map(Number);
+            const d = new Date(y, m - 1 + n, 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function formatearMesAnio(fechaStr) {
+            const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const [y, m] = fechaStr.split('-').map(Number);
+            return `${meses[m-1]} ${y}`;
+        }
+
+        function calcularSimulador() {
+            const deuda         = parseFloat(document.getElementById('sim-deuda').value)        || 0;
+            const tipoDeuda     = (parseFloat(document.getElementById('sim-tipo-deuda').value)  || 0) / 100;
+            const fechaInicio   = document.getElementById('sim-fecha-inicio').value;   // 'YYYY-MM'
+            const fechaFin      = document.getElementById('sim-fecha-fin').value;      // 'YYYY-MM'
+            const capital       = parseFloat(document.getElementById('sim-capital').value)       || 0;
+            const tipoAhorro    = (parseFloat(document.getElementById('sim-tipo-ahorro').value)  || 0) / 100;
+            const horizonte     = parseInt(document.getElementById('sim-horizonte').value)       || 12;
+
+            if (!deuda || !tipoDeuda || !fechaInicio || !fechaFin || !capital) {
+                mostrarMensaje('Datos incompletos', 'Rellena todos los campos: saldo, tipo de interés, fechas y capital a amortizar.'); return;
+            }
+            if (fechaFin <= fechaInicio) {
+                mostrarMensaje('Fechas inválidas', 'La fecha de la última cuota debe ser posterior a la de la próxima cuota.'); return;
+            }
+            if (capital >= deuda) {
+                mostrarMensaje('Capital inválido', 'El importe a amortizar debe ser menor que la deuda pendiente.'); return;
+            }
+
+            const mesesDeuda = mesesEntreFechas(fechaInicio, fechaFin);
+            const rm = tipoDeuda / 12;
+
+            // ── Cuota francesa ────────────────────────────────────────────
+            const cuota = rm > 0
+                ? (deuda * rm) / (1 - Math.pow(1 + rm, -mesesDeuda))
+                : deuda / mesesDeuda;
+
+            // ── Coste real de amortizar: el banco cobra interés devengado del mes ──
+            // El interés devengado en el mes actual sobre el saldo vivo
+            const interesDevengadoMes = deuda * rm;
+            // El capital que realmente se aplica a reducir deuda es el aportado menos el interés devengado
+            // Pero en amortización anticipada la práctica más común es que el banco aplica
+            // primero el interés del mes y el resto reduce capital.
+            // Así que el desembolso total real = capital aportado, de los cuales:
+            //   → interés devengado del mes = deuda * rm  (ya estaba en la cuota, pero aquí es adicional)
+            // Nota: en realidad en España la amortización parcial anticipada se suele hacer
+            // en la fecha de cuota, pagándola íntegra, y ADEMÁS el extra de capital.
+            // Modelamos: pagas cuota normal (ya incluye interés) + capital extra.
+            // El "interés del banco" que muestra es el interés que ESTABA DENTRO de la cuota ese mes.
+            const interesEnCuotaMes = deuda * rm; // interés del primer mes dentro de la cuota
+            const capitalEnCuotaMes = cuota - interesEnCuotaMes;
+            const desembolsoRealTotal = capital + cuota; // pagas la cuota + la amortización extra
+
+            // ── Ajustar capital al múltiplo de cuota más cercano por debajo ──
+            const multiplo = Math.floor(capital / cuota);
+            if (multiplo < 1) {
+                mostrarMensaje('Capital insuficiente', `El importe mínimo a amortizar es una cuota: ${cuota.toFixed(2)} €.`); return;
+            }
+            const capitalAjustado = multiplo * cuota;
+
+            // Mostrar/ocultar aviso de ajuste
+            const avisoEl = document.getElementById('sim-aviso-ajuste');
+            if (Math.abs(capital - capitalAjustado) > 0.01) {
+                avisoEl.textContent = `⚙️ Ajustado a ${multiplo} × ${cuota.toFixed(2)} € = ${capitalAjustado.toFixed(2)} € (múltiplo de cuota más cercano por debajo)`;
+                avisoEl.classList.remove('hidden');
+            } else {
+                avisoEl.classList.add('hidden');
+            }
+
+            // ── Escenario SIN amortizar ───────────────────────────────────
+            const costeTotalSin   = cuota * mesesDeuda;
+            const interesesTotSin = costeTotalSin - deuda;
+            const fechaFinSin     = fechaFin; // la que introdujo el usuario
+
+            // ── Escenario CON amortización ────────────────────────────────
+            const deudaRest = deuda - capitalAjustado;
+
+            let mesesCon = 0;
+            if (rm > 0) {
+                const arg = 1 - (deudaRest * rm) / cuota;
+                mesesCon = arg <= 0 ? 1 : Math.ceil(-Math.log(arg) / Math.log(1 + rm));
+            } else {
+                mesesCon = Math.ceil(deudaRest / cuota);
+            }
+            mesesCon = Math.max(1, mesesCon);
+
+            const mesesAhorrados  = mesesDeuda - mesesCon;
+            const costeTotalCon   = cuota * mesesCon;
+            const interesesTotCon = costeTotalCon - deudaRest;
+            const ahorroReal      = interesesTotSin - interesesTotCon;
+
+            // Calcular la fecha de última cuota CON amortización
+            // (fechaInicio + mesesCon - 1 meses)
+            const fechaFinCon = sumarMeses(fechaInicio, mesesCon - 1);
+
+            // ── Opción B: invertir capitalAjustado durante horizonte PROPIO ──
+            // horizonte es independiente: puede ser mayor/menor que mesesAhorrados
+            const rmAhorro = tipoAhorro / 12;
+            let capAhorro = capitalAjustado;
+            for (let i = 0; i < horizonte; i++) capAhorro += capAhorro * rmAhorro;
+            const gananciaNetaAhorro = (capAhorro - capitalAjustado) * 0.81; // retención IRPF ~19%
+
+            // Fecha en que terminaría la inversión
+            const fechaFinInversion = sumarMeses(fechaInicio, horizonte - 1);
+
+            // ── Rellenar tabla comparativa de cuotas y fechas ──────────────
+            document.getElementById('sim-label-cuota').textContent         = cuota.toFixed(2) + ' €/mes';
+            document.getElementById('sim-label-cuota-amort').textContent   = cuota.toFixed(2) + ' €/mes';
+            document.getElementById('sim-label-plazos-sin').textContent    = `${mesesDeuda} cuotas`;
+            document.getElementById('sim-label-plazos-con').textContent    = `${mesesCon} cuotas (−${mesesAhorrados})`;
+            document.getElementById('sim-label-fecha-sin').textContent     = formatearMesAnio(fechaFinSin);
+            document.getElementById('sim-label-fecha-con').textContent     = formatearMesAnio(fechaFinCon) + (mesesAhorrados > 0 ? ` (${mesesAhorrados} meses antes)` : '');
+            document.getElementById('sim-label-coste-sin').textContent     = interesesTotSin.toFixed(2) + ' €';
+            document.getElementById('sim-label-coste-con').textContent     = interesesTotCon.toFixed(2) + ' €';
+            document.getElementById('sim-label-capital-badge').textContent = `(${capitalAjustado.toFixed(2)} €, ${multiplo} cuota${multiplo > 1 ? 's' : ''})`;
+            document.getElementById('sim-ahorro-intereses').textContent    = ahorroReal.toFixed(2) + ' €';
+
+            // ── Desglose coste real de amortizar ──────────────────────────
+            document.getElementById('sim-coste-capital').textContent       = capitalAjustado.toFixed(2) + ' €';
+            document.getElementById('sim-coste-interes-banco').textContent = interesEnCuotaMes.toFixed(2) + ' €';
+            document.getElementById('sim-coste-total-real').textContent    = (capitalAjustado + interesEnCuotaMes).toFixed(2) + ' €';
+
+            // ── Tarjetas comparativas ──────────────────────────────────────
+            document.getElementById('sim-ahorro-display').textContent  = ahorroReal.toFixed(2) + ' €';
+            document.getElementById('sim-ganancia-ahorro').textContent = gananciaNetaAhorro.toFixed(2) + ' € (neto)';
+
+            document.getElementById('sim-cuota-antes').textContent     = `Sin amortizar: ${mesesDeuda} cuotas × ${cuota.toFixed(2)} € → intereses totales ${interesesTotSin.toFixed(2)} €`;
+            document.getElementById('sim-cuota-despues').textContent   = `Amortizando: ${mesesCon} cuotas × ${cuota.toFixed(2)} € → intereses totales ${interesesTotCon.toFixed(2)} €`;
+            document.getElementById('sim-fechas-resumen').textContent  = `Sin amortizar acabarías en ${formatearMesAnio(fechaFinSin)} · Amortizando en ${formatearMesAnio(fechaFinCon)}`;
+
+            document.getElementById('sim-nota-inversion').textContent  = `${capitalAjustado.toFixed(2)} € al ${(tipoAhorro * 100).toFixed(2)}% TAE durante ${horizonte} meses`;
+            document.getElementById('sim-nota-fiscal').textContent     = `Capital final bruto: ${capAhorro.toFixed(2)} € · Ganancia bruta: ${(capAhorro - capitalAjustado).toFixed(2)} € · Retención ~19%`;
+            document.getElementById('sim-fecha-inversion').textContent = `Si inviertes hoy: capital disponible en ${formatearMesAnio(fechaFinInversion)}`;
+
+            // ── Veredicto ──────────────────────────────────────────────────
+            const veredicto = document.getElementById('sim-veredicto');
+            const diferencia = ahorroReal - gananciaNetaAhorro;
+            const umbral = Math.max(50, Math.max(ahorroReal, gananciaNetaAhorro) * 0.02);
+
+            if (Math.abs(diferencia) < umbral) {
+                veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-amber-500 text-white';
+                veredicto.textContent = `⚖️ Prácticamente indiferente (${Math.abs(diferencia).toFixed(2)} € de diferencia). Decide según tu tranquilidad emocional.`;
+            } else if (diferencia > 0) {
+                veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-green-600 text-white';
+                veredicto.textContent = `✅ Conviene AMORTIZAR. Ahorras ${ahorroReal.toFixed(2)} € en intereses y terminas en ${formatearMesAnio(fechaFinCon)} en lugar de ${formatearMesAnio(fechaFinSin)} (${diferencia.toFixed(2)} € mejor que invertir).`;
+            } else {
+                veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-indigo-600 text-white';
+                veredicto.textContent = `📈 Conviene INVERTIR. Ganas ${gananciaNetaAhorro.toFixed(2)} € netos en ${horizonte} meses vs ${ahorroReal.toFixed(2)} € ahorrados amortizando (${Math.abs(diferencia).toFixed(2)} € mejor invertir).`;
+            }
+
+            // ── Gráfico acumulado ──────────────────────────────────────────
+            // La línea de amortizar: crece lineal desde mes mesesCon hasta mesesDeuda
+            // La línea de inversión: crece por interés compuesto durante su propio horizonte
+            const maxMeses = Math.max(mesesDeuda, horizonte);
+            const step = Math.max(1, Math.ceil(maxMeses / 60));
+            const labelsChart = [], dataAmort = [], dataAhorro = [];
+            let capGraf = capitalAjustado;
+
+            for (let i = 1; i <= maxMeses; i += step) {
+                // Ahorro por amortizar: se materializa al terminar antes la hipoteca
+                // Modelamos: el ahorro en intereses se realiza progresivamente tras la fecha fin amortizada
+                const fracAmort = i <= mesesCon ? 0
+                    : mesesAhorrados > 0
+                        ? Math.min(1, (i - mesesCon) / mesesAhorrados) * ahorroReal
+                        : ahorroReal;
+
+                // Inversión: crece compuestamente durante su horizonte propio
+                for (let j = 0; j < step; j++) {
+                    if (i - step + j < horizonte) capGraf += capGraf * rmAhorro;
+                }
+                const gananciaAcum = i <= horizonte
+                    ? Math.max(0, (capGraf - capitalAjustado) * 0.81)
+                    : (capAhorro - capitalAjustado) * 0.81; // ya no crece más
+
+                labelsChart.push(`M${i}`);
+                dataAmort.push(parseFloat(fracAmort.toFixed(2)));
+                dataAhorro.push(parseFloat(gananciaAcum.toFixed(2)));
+            }
+
+            const ctx = document.getElementById('sim-chart').getContext('2d');
+            if (simChart) simChart.destroy();
+            simChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labelsChart, datasets: [
+                    { label: 'Ahorro acumulado (amortizar)', data: dataAmort, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 0 },
+                    { label: 'Ganancia neta (invertir)',     data: dataAhorro, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 0 }
+                ]},
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } },
+                               tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(2)} €` } } },
+                    scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+                              y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toFixed(0) + ' €' } } }
+                }
+            });
+
+            document.getElementById('sim-resultado').classList.remove('hidden');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            document.getElementById('dark-label').innerText = isDark ? 'Modo Día' : 'Modo Noche';
+            document.getElementById('dark-toggle-thumb').style.transform = isDark ? 'translateX(16px)' : 'translateX(0px)';
+            actualizarTodo();
+        }
+    </script>
+</body>
+</html>

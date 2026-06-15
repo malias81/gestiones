@@ -112,6 +112,10 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 Simulador Amortización
             </button>
+            <button onclick="navigateTo('sobres')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-600 text-left transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                Sobres Virtuales
+            </button>
             
             <button id="install-btn" class="w-full mt-8 flex items-center p-3 rounded-lg bg-green-500 hover:bg-green-600 text-white text-left transition-colors shadow-md" style="display: none;">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -201,13 +205,35 @@
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden sm:col-span-1">
+                    <!-- Saldo Disponible (destacado) -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md relative overflow-hidden">
                         <div class="relative z-10">
-                            <p class="text-indigo-100 text-xs font-medium mb-1">Saldo Proyectado (mes actual)</p>
-                            <h3 id="dash-saldo-actual" class="text-3xl font-bold tracking-tight">0.00 €</h3>
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-indigo-100 text-xs font-medium">Saldo Disponible Real</p>
+                                <button class="help-btn" style="background:rgba(255,255,255,0.2);color:white" onclick="abrirHelp('Saldo Disponible Real','Tu saldo real menos lo que ya deberías tener apartado en sobres virtuales para pagos anuales. Este es el dinero que REALMENTE puedes gastar sin sorpresas futuras.')">?</button>
+                            </div>
+                            <h3 id="dash-saldo-disponible" class="text-3xl font-bold tracking-tight">0.00 €</h3>
+                            <p class="text-indigo-200 text-xs mt-1" id="dash-saldo-disponible-label">= Saldo Real − Comprometido</p>
                         </div>
                         <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     </div>
+                    <!-- Saldo Real -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <p class="text-xs font-medium text-slate-500 mb-1">Saldo Real (cuenta proyectada)</p>
+                        <h3 id="dash-saldo-actual" class="text-2xl font-bold text-slate-700">0.00 €</h3>
+                        <p class="text-xs text-slate-400 mt-1">Flujo de caja del mes actual</p>
+                    </div>
+                    <!-- Comprometido en sobres -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-amber-100 flex flex-col justify-between cursor-pointer hover:border-amber-300 transition-colors" onclick="navigateTo('sobres')">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-xs font-medium text-amber-700">Comprometido en Sobres</p>
+                            <span id="dash-sobres-semaforo" class="text-base">🟢</span>
+                        </div>
+                        <h3 id="dash-saldo-comprometido" class="text-2xl font-bold text-amber-600">0.00 €</h3>
+                        <p class="text-xs text-slate-400 mt-1" id="dash-sobres-count">0 sobres activos · Ver detalle →</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
                         <p class="text-xs font-medium text-slate-500 mb-1">Runway financiero</p>
                         <div class="flex items-end gap-2">
@@ -244,6 +270,20 @@
                     <div class="flex-1">
                         <p class="text-sm font-semibold text-red-800">Alerta de presupuesto</p>
                         <p id="alerta-deficit-texto" class="text-xs text-red-600 mt-0.5">Tus gastos fijos superan el 80% de tus ingresos.</p>
+                    </div>
+                </div>
+
+                <!-- Widget Salud de Sobres Virtuales -->
+                <div id="widget-sobres" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-semibold text-slate-800">Salud de Sobres Virtuales</h3>
+                            <button class="help-btn" onclick="abrirHelp('Sobres Virtuales','Cada sobre aparta mensualmente una parte de un pago anual (ej: seguro, IBI). El saldo comprometido crece mes a mes. Si tu saldo real cae por debajo del comprometido total, hay riesgo de impago.')">?</button>
+                        </div>
+                        <button onclick="navigateTo('sobres')" class="text-xs text-indigo-600 font-medium hover:underline">Gestionar →</button>
+                    </div>
+                    <div id="sobres-lista-dashboard" class="space-y-2">
+                        <p class="text-sm text-slate-400 text-center py-4">No hay sobres activos. <button onclick="navigateTo('sobres')" class="text-indigo-600 underline">Crear uno →</button></p>
                     </div>
                 </div>
 
@@ -606,29 +646,33 @@
                     <p class="text-indigo-200 text-sm mt-1">¿Te sale más a cuenta amortizar tu deuda o dejar el dinero generando intereses en una cuenta remunerada?</p>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-5">
-                    <h4 class="font-semibold text-slate-800">Datos de la Deuda</h4>
+                    <h4 class="font-semibold text-slate-800">Datos de la Hipoteca / Deuda</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Saldo pendiente (€)</label>
                             <input type="number" id="sim-deuda" placeholder="50000" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de interés de la deuda (TAE %)</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de interés anual (TIN %)</label>
                             <div class="relative">
                                 <input type="number" id="sim-tipo-deuda" placeholder="3.5" step="0.01" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5 pr-8">
                                 <span class="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Meses restantes de la deuda</label>
-                            <input type="number" id="sim-meses-deuda" placeholder="120" step="1" min="1" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la próxima cuota</label>
+                            <input type="month" id="sim-fecha-inicio" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Importe a amortizar / invertir (€)</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de la última cuota</label>
+                            <input type="month" id="sim-fecha-fin" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Importe a amortizar (€)</label>
                             <input type="number" id="sim-capital" placeholder="10000" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
                         </div>
                     </div>
-                    <h4 class="font-semibold text-slate-800 pt-2 border-t border-slate-100">Datos de la Cuenta Remunerada</h4>
+                    <h4 class="font-semibold text-slate-800 pt-2 border-t border-slate-100">Datos de la Alternativa: Invertir / Cuenta Remunerada</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">TAE de la cuenta / inversión (%)</label>
@@ -638,39 +682,182 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Horizonte de comparación (meses)</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Horizonte de la inversión (meses)</label>
                             <input type="number" id="sim-horizonte" placeholder="60" step="1" min="1" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-2.5">
+                            <p class="text-xs text-slate-400 mt-1">Cuánto tiempo mantendrías el dinero invertido. Puede ser diferente (mayor) al plazo que ahorras con la amortización.</p>
                         </div>
                     </div>
                     <button onclick="calcularSimulador()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-3 transition-colors text-sm shadow-md">Calcular y Comparar</button>
                 </div>
 
+                <!-- Aviso ajuste capital -->
+                <div id="sim-aviso-ajuste" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 font-medium"></div>
+
                 <!-- Resultados del simulador -->
                 <div id="sim-resultado" class="hidden space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Opción A — Amortizar</p>
-                            <p class="text-2xl font-bold text-slate-800" id="sim-ahorro-intereses">—</p>
-                            <p class="text-xs text-slate-400 mt-1">Intereses que te ahorras en el horizonte</p>
-                            <div id="sim-cuota-antes" class="mt-2 text-xs text-slate-500"></div>
-                            <div id="sim-cuota-despues" class="mt-1 text-xs text-slate-500"></div>
+
+                    <!-- ① Tabla comparativa de cuotas y fechas -->
+                    <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="bg-slate-50 px-5 py-3 border-b border-slate-100">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Comparativa de plazos, cuotas y fechas</p>
                         </div>
-                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Opción B — Invertir / Ahorrar</p>
-                            <p class="text-2xl font-bold text-slate-800" id="sim-ganancia-ahorro">—</p>
-                            <p class="text-xs text-slate-400 mt-1">Intereses que ganas en el horizonte</p>
-                            <div id="sim-nota-fiscal" class="mt-2 text-xs text-slate-400 italic"></div>
+                        <div class="grid grid-cols-2 divide-x divide-slate-100">
+                            <div class="p-5 space-y-2">
+                                <p class="text-xs font-semibold text-slate-400 uppercase mb-3">Sin amortizar</p>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Cuota mensual</span><span id="sim-label-cuota" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Nº de cuotas restantes</span><span id="sim-label-plazos-sin" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Última cuota</span><span id="sim-label-fecha-sin" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm border-t border-slate-100 pt-2"><span class="text-slate-500">Intereses que pagarás</span><span id="sim-label-coste-sin" class="font-bold text-red-600">—</span></div>
+                            </div>
+                            <div class="p-5 bg-green-50 space-y-2">
+                                <p class="text-xs font-semibold text-green-600 uppercase mb-3">Amortizando <span id="sim-label-capital-badge" class="normal-case font-normal text-green-500"></span></p>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Cuota mensual</span><span id="sim-label-cuota-amort" class="font-bold text-slate-800">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Nº de cuotas restantes</span><span id="sim-label-plazos-con" class="font-bold text-green-700">—</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-slate-500">Última cuota</span><span id="sim-label-fecha-con" class="font-bold text-green-700">—</span></div>
+                                <div class="flex justify-between text-sm border-t border-slate-100 pt-2"><span class="text-slate-500">Intereses que pagarás</span><span id="sim-label-coste-con" class="font-bold text-green-700">—</span></div>
+                            </div>
+                        </div>
+                        <div class="px-5 py-3 bg-green-100 border-t border-green-200 flex justify-between items-center">
+                            <span class="text-sm font-semibold text-green-800">Intereses ahorrados en la hipoteca (A − B)</span>
+                            <span id="sim-ahorro-intereses" class="text-xl font-bold text-green-700">—</span>
                         </div>
                     </div>
+
+                    <!-- ② Desglose del coste real de amortizar -->
+                    <div class="bg-white rounded-xl border border-amber-200 shadow-sm overflow-hidden">
+                        <div class="bg-amber-50 px-5 py-3 border-b border-amber-100">
+                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Desglose del coste real de amortizar ahora</p>
+                            <p class="text-xs text-amber-600 mt-0.5">La amortización se aplica sobre capital pendiente, pero el banco siempre cobra los intereses devengados hasta ese momento</p>
+                        </div>
+                        <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <p class="text-xs text-slate-500 mb-1">Capital amortizado</p>
+                                <p id="sim-coste-capital" class="text-xl font-bold text-slate-800">—</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Lo que reduces de deuda</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-slate-500 mb-1">Interés bancario aplicado</p>
+                                <p id="sim-coste-interes-banco" class="text-xl font-bold text-amber-600">—</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Interés del mes sobre deuda actual</p>
+                            </div>
+                            <div class="text-center border-t sm:border-t-0 sm:border-l border-slate-100 pt-3 sm:pt-0 sm:pl-4">
+                                <p class="text-xs text-slate-500 mb-1">Desembolso total real</p>
+                                <p id="sim-coste-total-real" class="text-xl font-bold text-red-600">—</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Capital + interés devengado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ③ Comparativa Amortizar vs Invertir -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-xl border border-green-200 shadow-sm">
+                            <p class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-2">Opción A — Amortizar</p>
+                            <p class="text-2xl font-bold text-green-700" id="sim-ahorro-display">—</p>
+                            <p class="text-xs text-slate-400 mt-1">Intereses que te ahorras en la hipoteca</p>
+                            <div class="mt-3 space-y-1">
+                                <div id="sim-cuota-antes" class="text-xs text-slate-500"></div>
+                                <div id="sim-cuota-despues" class="text-xs font-medium text-green-600"></div>
+                                <div id="sim-fechas-resumen" class="text-xs text-slate-400 pt-1 border-t border-slate-100 mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-indigo-200 shadow-sm">
+                            <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Opción B — Invertir / Cuenta Remunerada</p>
+                            <p class="text-2xl font-bold text-indigo-700" id="sim-ganancia-ahorro">—</p>
+                            <p class="text-xs text-slate-400 mt-1">Ganancia neta (ya descontada retención ~19%)</p>
+                            <div class="mt-3 space-y-1">
+                                <div id="sim-nota-inversion" class="text-xs text-slate-500"></div>
+                                <div id="sim-nota-fiscal" class="text-xs text-slate-400 italic"></div>
+                                <div id="sim-fecha-inversion" class="text-xs text-indigo-500 font-medium pt-1 border-t border-slate-100 mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="sim-veredicto" class="p-5 rounded-xl text-white font-semibold text-base text-center shadow-md">—</div>
+
                     <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                        <p class="text-xs font-semibold text-slate-500 mb-3">Evolución del diferencial acumulado (Ahorro − Amortización)</p>
-                        <div class="relative h-48"><canvas id="sim-chart"></canvas></div>
+                        <p class="text-xs font-semibold text-slate-500 mb-1">Evolución acumulada: ahorro en intereses vs ganancia de inversión</p>
+                        <p class="text-xs text-slate-400 mb-3">La línea verde crece cuando terminas la hipoteca antes. La línea morada refleja el crecimiento real de tu inversión durante su horizonte completo.</p>
+                        <div class="relative h-56"><canvas id="sim-chart"></canvas></div>
                     </div>
                 </div>
             </section>
 
+            <!-- =================== SOBRES VIRTUALES =================== -->
+            <section id="view-sobres" class="view-section max-w-3xl mx-auto space-y-6">
+                <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 rounded-xl shadow-sm">
+                    <h3 class="text-xl font-bold">Sobres Virtuales</h3>
+                    <p class="text-amber-100 text-sm mt-1">Provisiona automáticamente pagos anuales apartando una parte cada mes. Tu saldo disponible se ajusta sin que muevas dinero físicamente.</p>
+                </div>
+
+                <!-- Resumen balances -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm text-center">
+                        <p class="text-xs text-slate-500 mb-1">Saldo Real</p>
+                        <p id="sobres-saldo-real" class="text-xl font-bold text-slate-800">—</p>
+                    </div>
+                    <div class="bg-amber-50 rounded-xl p-4 border border-amber-200 shadow-sm text-center">
+                        <p class="text-xs text-amber-700 font-medium mb-1">Comprometido</p>
+                        <p id="sobres-comprometido" class="text-xl font-bold text-amber-700">—</p>
+                    </div>
+                    <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200 shadow-sm text-center">
+                        <p class="text-xs text-indigo-700 font-medium mb-1">Disponible</p>
+                        <p id="sobres-disponible" class="text-xl font-bold text-indigo-700">—</p>
+                    </div>
+                </div>
+
+                <!-- Formulario nuevo sobre -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                    <h4 class="font-bold text-slate-800 mb-4">Nuevo Sobre Virtual</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Nombre del gasto</label>
+                            <input type="text" id="sobre-nombre" placeholder="Ej: Seguro del coche, IBI..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Importe total anual (€)</label>
+                            <input type="number" id="sobre-importe" step="0.01" placeholder="600.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Fecha de vencimiento anual</label>
+                            <input type="date" id="sobre-vencimiento" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Inicio del ciclo de ahorro</label>
+                            <input type="date" id="sobre-inicio" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                        </div>
+                    </div>
+                    <div id="sobre-preview" class="hidden mb-4 bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-700">
+                        <span id="sobre-preview-text"></span>
+                    </div>
+                    <button onclick="guardarSobre()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors shadow-sm">
+                        Crear Sobre Virtual
+                    </button>
+                </div>
+
+                <!-- Lista de sobres -->
+                <div id="sobres-lista" class="space-y-3"></div>
+            </section>
+
         </main>
+    </div>
+
+    <!-- Modal Ejecutar Pago Anual -->
+    <div id="modal-ejecutar-pago" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Registrar Pago Real</h3>
+            <p class="text-sm text-slate-500 mb-4">Marca el pago como realizado. El sobre se reiniciará para el próximo ciclo anual.</p>
+            <input type="hidden" id="modal-sobre-id">
+            <div class="bg-slate-50 rounded-lg p-3 mb-4 text-sm">
+                <p class="font-medium text-slate-700" id="modal-sobre-nombre-label">—</p>
+                <p class="text-slate-500 text-xs mt-0.5" id="modal-sobre-importe-label">—</p>
+            </div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Cuenta desde la que se paga</label>
+            <select id="modal-sobre-cuenta" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm mb-4"></select>
+            <div class="flex gap-2">
+                <button onclick="cerrarModalPago()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium">Cancelar</button>
+                <button onclick="ejecutarPagoAnual()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Confirmar Pago</button>
+            </div>
+        </div>
     </div>
 
     <div id="help-modal" onclick="cerrarHelpModal(event)">
@@ -765,7 +952,7 @@
         });
 
         /* --- 2. GESTIÓN LOCAL (INDEXEDDB) --- */
-        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 2; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0; let filtroVistaPropietario = 'ALL';
+        const DB_NAME = 'FinanzasAppDB'; const DB_VERSION = 3; let db; let cuentaActivaId = null; let currentChart = null; let currentPieChart = null; let currentBarChart = null; let currentWaterfallChart = null; let currentStackedChart = null; let aniosProyeccion = 5; let interesCompuestoMensual = 0; let filtroVistaPropietario = 'ALL';
 
         function initDB() {
             return new Promise((resolve) => {
@@ -778,7 +965,10 @@
                         const store = localDB.createObjectStore('movimientos', { keyPath: 'id', autoIncrement: true });
                         store.createIndex('cuentaId', 'cuentaId', { unique: false });
                     }
-                    // v2: no schema changes needed; propietario and tasa_interes stored as new fields on existing objects
+                    // v3: sobres virtuales / provisión automática
+                    if (!localDB.objectStoreNames.contains('pagosAnuales')) {
+                        localDB.createObjectStore('pagosAnuales', { keyPath: 'id', autoIncrement: true });
+                    }
                 };
             });
         }
@@ -817,7 +1007,8 @@
             'historial-meses': 'Historial por Meses', 
             'movimientos-activos': 'Movimientos Activos', 
             'cuentas': 'Mis Cuentas',
-            'simulador': 'Simulador de Amortización'
+            'simulador': 'Simulador de Amortización',
+            'sobres': 'Sobres Virtuales'
         };
         
         async function navigateTo(viewId) {
@@ -846,7 +1037,15 @@
             if(viewId === 'historial-meses') renderHistorialMeses();
             if(viewId === 'movimientos-activos') renderMovimientosActivos();
             if(viewId === 'cuentas') renderListaCuentas();
-            if(viewId === 'simulador') { /* nada que cargar al inicio */ }
+            if(viewId === 'simulador') {
+                // Pre-rellenar fecha inicio con el mes actual si está vacío
+                const fi = document.getElementById('sim-fecha-inicio');
+                if (fi && !fi.value) {
+                    const hoy = new Date();
+                    fi.value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+                }
+            }
+            if(viewId === 'sobres') renderSobres();
         }
 
         function toggleSidebar() {
@@ -1575,6 +1774,9 @@
 
             // Actualizar patrimonio en bloque de cuentas por propietario
             renderPatrimonioBloque(todasCuentas);
+
+            // Actualizar widget de sobres virtuales
+            await renderWidgetSobresDashboard(saldoMostrar);
         }
 
         /* --- 9. RENDERIZACIÓN DE COMPONENTES DE GRÁFICOS (CHART.JS) --- */
@@ -1742,8 +1944,8 @@
 
         /* --- 10. IMPORTACIÓN / EXPORTACIÓN Y COPIA DE SEGURIDAD --- */
         async function exportarDatos() {
-            const cc = await dbGetAll('cuentas'); const mm = await dbGetAll('movimientos');
-            const blob = new Blob([JSON.stringify({ cuentas: cc, movimientos: mm })], { type: 'application/json' });
+            const cc = await dbGetAll('cuentas'); const mm = await dbGetAll('movimientos'); const pp = await dbGetAll('pagosAnuales');
+            const blob = new Blob([JSON.stringify({ cuentas: cc, movimientos: mm, pagosAnuales: pp })], { type: 'application/json' });
             const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `finanzas_backup.json`; a.click();
         }
         async function importarDatos(e) {
@@ -1753,8 +1955,10 @@
                     const data = JSON.parse(evt.target.result);
                     if (data.cuentas && data.movimientos) {
                         await dbClear('cuentas'); await dbClear('movimientos');
+                        if (data.pagosAnuales) await dbClear('pagosAnuales');
                         for (let c of data.cuentas) await dbAdd('cuentas', c);
                         for (let m of data.movimientos) await dbAdd('movimientos', m);
+                        if (data.pagosAnuales) for (let p of data.pagosAnuales) await dbAdd('pagosAnuales', p);
                         mostrarMensaje('Éxito', 'Estructura importada correctamente.');
                         await cargarSelectorGlobalCuentas(); actualizarTodo();
                     }
@@ -1791,101 +1995,531 @@
             }).join('');
         }
 
+        /* ================================================================
+         * DOMINIO: SOBRES VIRTUALES — Provisión Automática
+         * Clean Architecture: Use Cases aislados de la UI
+         * ================================================================ */
+
+        /**
+         * Entity: AnnualPayment
+         * @typedef {{ id: number, name: string, totalAmount: number, dueDate: string, cycleStartDate: string, isActive: boolean }} AnnualPayment
+         */
+
+        /**
+         * ProvisionGoal (calculado, no persiste en DB)
+         * Devuelve el estado derivado de un AnnualPayment a la fecha actual.
+         * @param {AnnualPayment} payment
+         * @returns {{ monthlyProvision: number, accumulatedAmount: number, remainingMonths: number, progressPct: number }}
+         */
+        function calculateProvisionGoal(payment) {
+            const hoy = new Date();
+            const inicio = new Date(payment.cycleStartDate);
+            const vencimiento = new Date(payment.dueDate);
+
+            // Meses totales del ciclo (al menos 1)
+            const mesesCiclo = Math.max(1,
+                (vencimiento.getFullYear() - inicio.getFullYear()) * 12 +
+                (vencimiento.getMonth() - inicio.getMonth())
+            );
+
+            const monthlyProvision = payment.totalAmount / mesesCiclo;
+
+            // Meses transcurridos desde inicio del ciclo (mínimo 0)
+            const mesesTranscurridos = Math.max(0, Math.min(mesesCiclo,
+                (hoy.getFullYear() - inicio.getFullYear()) * 12 +
+                (hoy.getMonth() - inicio.getMonth())
+            ));
+
+            const accumulatedAmount = monthlyProvision * mesesTranscurridos;
+            const remainingMonths = Math.max(0, mesesCiclo - mesesTranscurridos);
+            const progressPct = mesesCiclo > 0 ? Math.min(100, (mesesTranscurridos / mesesCiclo) * 100) : 0;
+
+            return { monthlyProvision, accumulatedAmount, remainingMonths, progressPct, mesesCiclo, mesesTranscurridos };
+        }
+
+        /**
+         * USE CASE: CalculateCommittedBalanceUseCase
+         * Suma el accumulatedAmount de todos los pagos anuales activos.
+         * @param {AnnualPayment[]} payments
+         * @returns {number} totalComprometido
+         */
+        function calculateCommittedBalance(payments) {
+            return payments
+                .filter(p => p.isActive)
+                .reduce((total, p) => total + calculateProvisionGoal(p).accumulatedAmount, 0);
+        }
+
+        /**
+         * USE CASE: CalculateAvailableBalanceUseCase
+         * @param {number} realBalance  – saldo real de cuentas
+         * @param {number} committed    – resultado de calculateCommittedBalance
+         * @returns {number} disponible
+         */
+        function calculateAvailableBalance(realBalance, committed) {
+            return realBalance - committed;
+        }
+
+        /**
+         * USE CASE: ExecuteAnnualPaymentUseCase
+         * Registra el gasto real y reinicia el ciclo del sobre al año siguiente.
+         * @param {AnnualPayment} payment
+         * @param {number} cuentaId
+         */
+        async function executeAnnualPayment(payment, cuentaId) {
+            const hoy = new Date();
+            const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+
+            // 1. Registrar el gasto real en movimientos
+            await dbAdd('movimientos', {
+                cuentaId: cuentaId,
+                cuentaDestinoId: null,
+                tipo: 'gasto',
+                motivo: 'Pago Anual (Sobre Virtual)',
+                concepto: payment.name,
+                cantidad: payment.totalAmount,
+                cantidadOriginal: payment.totalAmount,
+                periodicidad: 'mensual',
+                fechaInicio: mesActual,
+                recurrente: false,
+                esInversion: false,
+                tieneLimite: false,
+                fechaFin: null
+            });
+
+            // 2. Reiniciar el ciclo: nuevo inicio = hoy, nuevo vencimiento = +12 meses
+            const nuevaFechaInicio = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
+            const proxAnio = new Date(hoy.getFullYear() + 1, hoy.getMonth(), 1);
+            const nuevaFechaVenc = `${proxAnio.getFullYear()}-${String(proxAnio.getMonth() + 1).padStart(2, '0')}-01`;
+
+            await dbPut('pagosAnuales', {
+                ...payment,
+                cycleStartDate: nuevaFechaInicio,
+                dueDate: nuevaFechaVenc
+            });
+        }
+
+        /* ================================================================
+         * UI HANDLERS: SOBRES VIRTUALES
+         * ================================================================ */
+
+        // Pre-calcular preview mientras el usuario rellena el formulario
+        ['sobre-importe', 'sobre-vencimiento', 'sobre-inicio'].forEach(id => {
+            // Defer hasta que el DOM esté listo
+            document.addEventListener('DOMContentLoaded', () => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', actualizarPreviewSobre);
+            });
+        });
+
+        function actualizarPreviewSobre() {
+            const importe = parseFloat(document.getElementById('sobre-importe').value) || 0;
+            const venc = document.getElementById('sobre-vencimiento').value;
+            const inicio = document.getElementById('sobre-inicio').value;
+            const prev = document.getElementById('sobre-preview');
+            const txt = document.getElementById('sobre-preview-text');
+            if (!importe || !venc || !inicio) { prev.classList.add('hidden'); return; }
+
+            const goal = calculateProvisionGoal({ totalAmount: importe, dueDate: venc, cycleStartDate: inicio });
+            txt.textContent = `Provisión mensual: ${goal.monthlyProvision.toFixed(2)} €/mes durante ${goal.mesesCiclo} meses · Ya acumulado: ${goal.accumulatedAmount.toFixed(2)} € · Quedan ${goal.remainingMonths} meses`;
+            prev.classList.remove('hidden');
+        }
+
+        async function guardarSobre() {
+            const nombre = document.getElementById('sobre-nombre').value.trim();
+            const importe = parseFloat(document.getElementById('sobre-importe').value);
+            const vencimiento = document.getElementById('sobre-vencimiento').value;
+            const inicio = document.getElementById('sobre-inicio').value;
+
+            if (!nombre || !importe || !vencimiento || !inicio) {
+                mostrarMensaje('Datos incompletos', 'Rellena todos los campos del sobre.'); return;
+            }
+            if (inicio >= vencimiento) {
+                mostrarMensaje('Fechas inválidas', 'La fecha de inicio debe ser anterior al vencimiento.'); return;
+            }
+
+            await dbAdd('pagosAnuales', {
+                name: nombre,
+                totalAmount: importe,
+                dueDate: vencimiento,
+                cycleStartDate: inicio,
+                isActive: true
+            });
+
+            document.getElementById('sobre-nombre').value = '';
+            document.getElementById('sobre-importe').value = '';
+            document.getElementById('sobre-vencimiento').value = '';
+            document.getElementById('sobre-inicio').value = '';
+            document.getElementById('sobre-preview').classList.add('hidden');
+
+            await renderSobres();
+            actualizarTodo();
+            mostrarMensaje('Sobre creado', `El sobre "${nombre}" se ha creado. Apartarás ${(importe/12).toFixed(2)} €/mes.`);
+        }
+
+        async function renderSobres() {
+            const pagos = await dbGetAll('pagosAnuales');
+            const cuentas = await dbGetAll('cuentas');
+            const saldoReal = cuentas.reduce((s, c) => s + (parseFloat(c.base)||0), 0);
+
+            // Balances en la vista de sobres
+            const comprometido = calculateCommittedBalance(pagos);
+            const disponible = calculateAvailableBalance(saldoReal, comprometido);
+            document.getElementById('sobres-saldo-real').textContent = saldoReal.toFixed(2) + ' €';
+            document.getElementById('sobres-comprometido').textContent = comprometido.toFixed(2) + ' €';
+            document.getElementById('sobres-disponible').textContent = disponible.toFixed(2) + ' €';
+
+            const lista = document.getElementById('sobres-lista');
+            if (!lista) return;
+
+            const activos = pagos.filter(p => p.isActive);
+            if (activos.length === 0) {
+                lista.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">No hay sobres activos. Crea uno arriba.</p>';
+                return;
+            }
+
+            lista.innerHTML = activos.map(p => {
+                const g = calculateProvisionGoal(p);
+                const alerta = saldoReal < comprometido;
+                const vencCercano = g.remainingMonths <= 2;
+                const borderColor = alerta ? 'border-red-200' : vencCercano ? 'border-amber-200' : 'border-slate-100';
+                const badgeColor = alerta ? 'bg-red-100 text-red-700' : vencCercano ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
+                const badgeText = alerta ? '🔴 En riesgo' : vencCercano ? '🟡 Vence pronto' : '🟢 Al día';
+                const pct = g.progressPct.toFixed(0);
+                const barColor = alerta ? '#ef4444' : vencCercano ? '#f59e0b' : '#22c55e';
+
+                return `<div class="bg-white rounded-xl border ${borderColor} shadow-sm p-5">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-800">${p.name}</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Vence: ${p.dueDate} · ${g.remainingMonths} meses restantes</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full font-medium ${badgeColor}">${badgeText}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                        <div class="bg-slate-50 rounded-lg p-2">
+                            <p class="text-xs text-slate-500">Total anual</p>
+                            <p class="font-bold text-slate-800 text-sm">${p.totalAmount.toFixed(2)} €</p>
+                        </div>
+                        <div class="bg-indigo-50 rounded-lg p-2">
+                            <p class="text-xs text-indigo-600">Provisión/mes</p>
+                            <p class="font-bold text-indigo-700 text-sm">${g.monthlyProvision.toFixed(2)} €</p>
+                        </div>
+                        <div class="bg-amber-50 rounded-lg p-2">
+                            <p class="text-xs text-amber-600">Apartado hoy</p>
+                            <p class="font-bold text-amber-700 text-sm">${g.accumulatedAmount.toFixed(2)} €</p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Progreso del ciclo</span><span>${pct}%</span>
+                        </div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%;background:${barColor}"></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <button onclick="abrirModalPago(${p.id})" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">✓ Registrar Pago</button>
+                        <button onclick="eliminarSobre(${p.id})" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-red-50 hover:text-red-600 transition-colors">Eliminar</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function eliminarSobre(id) {
+            if (!confirm('¿Eliminar este sobre? No se registrará ningún pago.')) return;
+            await dbDelete('pagosAnuales', id);
+            await renderSobres();
+            actualizarTodo();
+        }
+
+        async function abrirModalPago(id) {
+            const p = await dbGet('pagosAnuales', id);
+            document.getElementById('modal-sobre-id').value = id;
+            document.getElementById('modal-sobre-nombre-label').textContent = p.name;
+            document.getElementById('modal-sobre-importe-label').textContent = `Importe a registrar: ${p.totalAmount.toFixed(2)} €`;
+
+            const sel = document.getElementById('modal-sobre-cuenta');
+            const cuentas = await dbGetAll('cuentas');
+            sel.innerHTML = cuentas.map(c => `<option value="${c.id}">${c.nombre} (${(c.base||0).toFixed(2)} €)</option>`).join('');
+
+            document.getElementById('modal-ejecutar-pago').classList.remove('hidden');
+        }
+
+        function cerrarModalPago() { document.getElementById('modal-ejecutar-pago').classList.add('hidden'); }
+
+        async function ejecutarPagoAnual() {
+            const id = parseInt(document.getElementById('modal-sobre-id').value);
+            const cuentaId = parseInt(document.getElementById('modal-sobre-cuenta').value);
+            const pago = await dbGet('pagosAnuales', id);
+
+            await executeAnnualPayment(pago, cuentaId);
+            cerrarModalPago();
+            await renderSobres();
+            actualizarTodo();
+            mostrarMensaje('Pago registrado ✓', `El gasto de ${pago.totalAmount.toFixed(2)} € ha sido registrado. El ciclo del sobre se ha reiniciado para el próximo año.`);
+        }
+
+        /* Renderiza el widget de sobres en el dashboard */
+        async function renderWidgetSobresDashboard(saldoReal) {
+            const pagos = await dbGetAll('pagosAnuales');
+            const activos = pagos.filter(p => p.isActive);
+            const comprometido = calculateCommittedBalance(activos);
+            const disponible = calculateAvailableBalance(saldoReal, comprometido);
+
+            // Actualizar tarjetas del dashboard
+            document.getElementById('dash-saldo-comprometido').textContent = comprometido.toFixed(2) + ' €';
+            document.getElementById('dash-sobres-count').textContent = `${activos.length} sobre${activos.length !== 1 ? 's' : ''} activo${activos.length !== 1 ? 's' : ''} · Ver detalle →`;
+            document.getElementById('dash-saldo-disponible').textContent = disponible.toFixed(2) + ' €';
+
+            const enRiesgo = saldoReal < comprometido;
+            document.getElementById('dash-sobres-semaforo').textContent = enRiesgo ? '🔴' : '🟢';
+            document.getElementById('dash-saldo-disponible-label').textContent = enRiesgo
+                ? '⚠️ Saldo real insuficiente para cubrir compromisos'
+                : `= ${saldoReal.toFixed(2)} € − ${comprometido.toFixed(2)} €`;
+
+            // Lista semáforo en widget
+            const listaEl = document.getElementById('sobres-lista-dashboard');
+            if (!listaEl) return;
+
+            if (activos.length === 0) {
+                listaEl.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">No hay sobres activos. <button onclick="navigateTo(\'sobres\')" class="text-indigo-600 underline">Crear uno →</button></p>';
+                return;
+            }
+
+            const hoy = new Date();
+            listaEl.innerHTML = activos.map(p => {
+                const g = calculateProvisionGoal(p);
+                const vencCercano = g.remainingMonths <= 2;
+                const emoji = enRiesgo ? '🔴' : vencCercano ? '🟡' : '🟢';
+                return `<div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                    <div class="flex items-center gap-2">
+                        <span>${emoji}</span>
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">${p.name}</p>
+                            <p class="text-xs text-slate-400">${g.monthlyProvision.toFixed(2)} €/mes · ${g.remainingMonths} meses para vencimiento</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-amber-600">${g.accumulatedAmount.toFixed(2)} €</p>
+                        <p class="text-xs text-slate-400">de ${p.totalAmount.toFixed(2)} €</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        /* ================================================================
+         * SIMULADOR — Amortizar reduciendo PLAZO (misma cuota)
+         * v2: usa fechas reales, muestra cuotas actuales y tras amortizar,
+         * fecha de última cuota en ambos escenarios, desglose del coste
+         * real de amortizar (capital + interés devengado del mes), y
+         * la comparativa de inversión usa SU PROPIO horizonte independiente.
+         * ================================================================ */
         let simChart = null;
+
+        function mesesEntreFechas(fechaIni, fechaFin) {
+            // fechaIni y fechaFin son strings 'YYYY-MM'
+            const [ay, am] = fechaIni.split('-').map(Number);
+            const [by, bm] = fechaFin.split('-').map(Number);
+            return (by - ay) * 12 + (bm - am) + 1; // +1: la última cuota también cuenta
+        }
+
+        function sumarMeses(fechaStr, n) {
+            // Devuelve 'YYYY-MM' sumando n meses a fechaStr
+            const [y, m] = fechaStr.split('-').map(Number);
+            const d = new Date(y, m - 1 + n, 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function formatearMesAnio(fechaStr) {
+            const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const [y, m] = fechaStr.split('-').map(Number);
+            return `${meses[m-1]} ${y}`;
+        }
+
         function calcularSimulador() {
-            const deuda = parseFloat(document.getElementById('sim-deuda').value) || 0;
-            const tipoDeuda = (parseFloat(document.getElementById('sim-tipo-deuda').value) || 0) / 100;
-            const mesesDeuda = parseInt(document.getElementById('sim-meses-deuda').value) || 0;
-            const capital = parseFloat(document.getElementById('sim-capital').value) || 0;
-            const tipoAhorro = (parseFloat(document.getElementById('sim-tipo-ahorro').value) || 0) / 100;
-            const horizonte = parseInt(document.getElementById('sim-horizonte').value) || 12;
+            const deuda         = parseFloat(document.getElementById('sim-deuda').value)        || 0;
+            const tipoDeuda     = (parseFloat(document.getElementById('sim-tipo-deuda').value)  || 0) / 100;
+            const fechaInicio   = document.getElementById('sim-fecha-inicio').value;   // 'YYYY-MM'
+            const fechaFin      = document.getElementById('sim-fecha-fin').value;      // 'YYYY-MM'
+            const capital       = parseFloat(document.getElementById('sim-capital').value)       || 0;
+            const tipoAhorro    = (parseFloat(document.getElementById('sim-tipo-ahorro').value)  || 0) / 100;
+            const horizonte     = parseInt(document.getElementById('sim-horizonte').value)       || 12;
 
-            if (!capital || !tipoDeuda || !mesesDeuda || !deuda) {
-                mostrarMensaje('Datos incompletos', 'Rellena todos los campos de la deuda y el capital a amortizar/invertir.'); return;
+            if (!deuda || !tipoDeuda || !fechaInicio || !fechaFin || !capital) {
+                mostrarMensaje('Datos incompletos', 'Rellena todos los campos: saldo, tipo de interés, fechas y capital a amortizar.'); return;
+            }
+            if (fechaFin <= fechaInicio) {
+                mostrarMensaje('Fechas inválidas', 'La fecha de la última cuota debe ser posterior a la de la próxima cuota.'); return;
+            }
+            if (capital >= deuda) {
+                mostrarMensaje('Capital inválido', 'El importe a amortizar debe ser menor que la deuda pendiente.'); return;
             }
 
-            // Cuota mensual sin amortizar (préstamo francés)
+            const mesesDeuda = mesesEntreFechas(fechaInicio, fechaFin);
             const rm = tipoDeuda / 12;
-            const cuotaOriginal = rm > 0 ? (deuda * rm) / (1 - Math.pow(1 + rm, -mesesDeuda)) : deuda / mesesDeuda;
 
-            // Intereses pagados en horizonte (sin amortizar)
-            let saldoSin = deuda;
-            let interesesSin = 0;
-            for(let i = 0; i < Math.min(horizonte, mesesDeuda); i++) {
-                const interesMes = saldoSin * rm;
-                interesesSin += interesMes;
-                saldoSin = saldoSin - (cuotaOriginal - interesMes);
+            // ── Cuota francesa ────────────────────────────────────────────
+            const cuota = rm > 0
+                ? (deuda * rm) / (1 - Math.pow(1 + rm, -mesesDeuda))
+                : deuda / mesesDeuda;
+
+            // ── Coste real de amortizar: el banco cobra interés devengado del mes ──
+            // El interés devengado en el mes actual sobre el saldo vivo
+            const interesDevengadoMes = deuda * rm;
+            // El capital que realmente se aplica a reducir deuda es el aportado menos el interés devengado
+            // Pero en amortización anticipada la práctica más común es que el banco aplica
+            // primero el interés del mes y el resto reduce capital.
+            // Así que el desembolso total real = capital aportado, de los cuales:
+            //   → interés devengado del mes = deuda * rm  (ya estaba en la cuota, pero aquí es adicional)
+            // Nota: en realidad en España la amortización parcial anticipada se suele hacer
+            // en la fecha de cuota, pagándola íntegra, y ADEMÁS el extra de capital.
+            // Modelamos: pagas cuota normal (ya incluye interés) + capital extra.
+            // El "interés del banco" que muestra es el interés que ESTABA DENTRO de la cuota ese mes.
+            const interesEnCuotaMes = deuda * rm; // interés del primer mes dentro de la cuota
+            const capitalEnCuotaMes = cuota - interesEnCuotaMes;
+            const desembolsoRealTotal = capital + cuota; // pagas la cuota + la amortización extra
+
+            // ── Ajustar capital al múltiplo de cuota más cercano por debajo ──
+            const multiplo = Math.floor(capital / cuota);
+            if (multiplo < 1) {
+                mostrarMensaje('Capital insuficiente', `El importe mínimo a amortizar es una cuota: ${cuota.toFixed(2)} €.`); return;
+            }
+            const capitalAjustado = multiplo * cuota;
+
+            // Mostrar/ocultar aviso de ajuste
+            const avisoEl = document.getElementById('sim-aviso-ajuste');
+            if (Math.abs(capital - capitalAjustado) > 0.01) {
+                avisoEl.textContent = `⚙️ Ajustado a ${multiplo} × ${cuota.toFixed(2)} € = ${capitalAjustado.toFixed(2)} € (múltiplo de cuota más cercano por debajo)`;
+                avisoEl.classList.remove('hidden');
+            } else {
+                avisoEl.classList.add('hidden');
             }
 
-            // Cuota mensual CON amortización
-            const deudaAmort = Math.max(0, deuda - capital);
-            const cuotaAmort = rm > 0 ? (deudaAmort * rm) / (1 - Math.pow(1 + rm, -mesesDeuda)) : deudaAmort / mesesDeuda;
-            let saldoCon = deudaAmort;
-            let interesesCon = 0;
-            for(let i = 0; i < Math.min(horizonte, mesesDeuda); i++) {
-                const interesMes = saldoCon * rm;
-                interesesCon += interesMes;
-                saldoCon = saldoCon - (cuotaAmort - interesMes);
+            // ── Escenario SIN amortizar ───────────────────────────────────
+            const costeTotalSin   = cuota * mesesDeuda;
+            const interesesTotSin = costeTotalSin - deuda;
+            const fechaFinSin     = fechaFin; // la que introdujo el usuario
+
+            // ── Escenario CON amortización ────────────────────────────────
+            const deudaRest = deuda - capitalAjustado;
+
+            let mesesCon = 0;
+            if (rm > 0) {
+                const arg = 1 - (deudaRest * rm) / cuota;
+                mesesCon = arg <= 0 ? 1 : Math.ceil(-Math.log(arg) / Math.log(1 + rm));
+            } else {
+                mesesCon = Math.ceil(deudaRest / cuota);
             }
+            mesesCon = Math.max(1, mesesCon);
 
-            const ahorroIntereses = interesesSin - interesesCon;
+            const mesesAhorrados  = mesesDeuda - mesesCon;
+            const costeTotalCon   = cuota * mesesCon;
+            const interesesTotCon = costeTotalCon - deudaRest;
+            const ahorroReal      = interesesTotSin - interesesTotCon;
 
-            // Ganancia cuenta remunerada (interés compuesto mensual)
+            // Calcular la fecha de última cuota CON amortización
+            // (fechaInicio + mesesCon - 1 meses)
+            const fechaFinCon = sumarMeses(fechaInicio, mesesCon - 1);
+
+            // ── Opción B: invertir capitalAjustado durante horizonte PROPIO ──
+            // horizonte es independiente: puede ser mayor/menor que mesesAhorrados
             const rmAhorro = tipoAhorro / 12;
-            let capitalAhorro = capital;
-            let interesesTotalesAhorro = 0;
-            for(let i = 0; i < horizonte; i++) {
-                const intMes = capitalAhorro * rmAhorro;
-                interesesTotalesAhorro += intMes;
-                capitalAhorro += intMes;
-            }
-            // Retención fiscal ~19% sobre rendimientos del capital
-            const gananciaNetaAhorro = interesesTotalesAhorro * 0.81;
+            let capAhorro = capitalAjustado;
+            for (let i = 0; i < horizonte; i++) capAhorro += capAhorro * rmAhorro;
+            const gananciaNetaAhorro = (capAhorro - capitalAjustado) * 0.81; // retención IRPF ~19%
 
-            document.getElementById('sim-ahorro-intereses').textContent = ahorroIntereses.toFixed(2) + ' €';
+            // Fecha en que terminaría la inversión
+            const fechaFinInversion = sumarMeses(fechaInicio, horizonte - 1);
+
+            // ── Rellenar tabla comparativa de cuotas y fechas ──────────────
+            document.getElementById('sim-label-cuota').textContent         = cuota.toFixed(2) + ' €/mes';
+            document.getElementById('sim-label-cuota-amort').textContent   = cuota.toFixed(2) + ' €/mes';
+            document.getElementById('sim-label-plazos-sin').textContent    = `${mesesDeuda} cuotas`;
+            document.getElementById('sim-label-plazos-con').textContent    = `${mesesCon} cuotas (−${mesesAhorrados})`;
+            document.getElementById('sim-label-fecha-sin').textContent     = formatearMesAnio(fechaFinSin);
+            document.getElementById('sim-label-fecha-con').textContent     = formatearMesAnio(fechaFinCon) + (mesesAhorrados > 0 ? ` (${mesesAhorrados} meses antes)` : '');
+            document.getElementById('sim-label-coste-sin').textContent     = interesesTotSin.toFixed(2) + ' €';
+            document.getElementById('sim-label-coste-con').textContent     = interesesTotCon.toFixed(2) + ' €';
+            document.getElementById('sim-label-capital-badge').textContent = `(${capitalAjustado.toFixed(2)} €, ${multiplo} cuota${multiplo > 1 ? 's' : ''})`;
+            document.getElementById('sim-ahorro-intereses').textContent    = ahorroReal.toFixed(2) + ' €';
+
+            // ── Desglose coste real de amortizar ──────────────────────────
+            document.getElementById('sim-coste-capital').textContent       = capitalAjustado.toFixed(2) + ' €';
+            document.getElementById('sim-coste-interes-banco').textContent = interesEnCuotaMes.toFixed(2) + ' €';
+            document.getElementById('sim-coste-total-real').textContent    = (capitalAjustado + interesEnCuotaMes).toFixed(2) + ' €';
+
+            // ── Tarjetas comparativas ──────────────────────────────────────
+            document.getElementById('sim-ahorro-display').textContent  = ahorroReal.toFixed(2) + ' €';
             document.getElementById('sim-ganancia-ahorro').textContent = gananciaNetaAhorro.toFixed(2) + ' € (neto)';
-            document.getElementById('sim-cuota-antes').textContent = `Cuota actual: ${cuotaOriginal.toFixed(2)} €/mes`;
-            document.getElementById('sim-cuota-despues').textContent = `Cuota tras amortizar: ${cuotaAmort.toFixed(2)} €/mes`;
-            document.getElementById('sim-nota-fiscal').textContent = 'Rendimiento neto estimado tras retención fiscal ~19%';
 
+            document.getElementById('sim-cuota-antes').textContent     = `Sin amortizar: ${mesesDeuda} cuotas × ${cuota.toFixed(2)} € → intereses totales ${interesesTotSin.toFixed(2)} €`;
+            document.getElementById('sim-cuota-despues').textContent   = `Amortizando: ${mesesCon} cuotas × ${cuota.toFixed(2)} € → intereses totales ${interesesTotCon.toFixed(2)} €`;
+            document.getElementById('sim-fechas-resumen').textContent  = `Sin amortizar acabarías en ${formatearMesAnio(fechaFinSin)} · Amortizando en ${formatearMesAnio(fechaFinCon)}`;
+
+            document.getElementById('sim-nota-inversion').textContent  = `${capitalAjustado.toFixed(2)} € al ${(tipoAhorro * 100).toFixed(2)}% TAE durante ${horizonte} meses`;
+            document.getElementById('sim-nota-fiscal').textContent     = `Capital final bruto: ${capAhorro.toFixed(2)} € · Ganancia bruta: ${(capAhorro - capitalAjustado).toFixed(2)} € · Retención ~19%`;
+            document.getElementById('sim-fecha-inversion').textContent = `Si inviertes hoy: capital disponible en ${formatearMesAnio(fechaFinInversion)}`;
+
+            // ── Veredicto ──────────────────────────────────────────────────
             const veredicto = document.getElementById('sim-veredicto');
-            const diferencia = ahorroIntereses - gananciaNetaAhorro;
-            if (Math.abs(diferencia) < 50) {
+            const diferencia = ahorroReal - gananciaNetaAhorro;
+            const umbral = Math.max(50, Math.max(ahorroReal, gananciaNetaAhorro) * 0.02);
+
+            if (Math.abs(diferencia) < umbral) {
                 veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-amber-500 text-white';
-                veredicto.textContent = `⚖️ Prácticamente indiferente (diferencia: ${Math.abs(diferencia).toFixed(2)} €). Decide según liquidez o tranquilidad emocional.`;
+                veredicto.textContent = `⚖️ Prácticamente indiferente (${Math.abs(diferencia).toFixed(2)} € de diferencia). Decide según tu tranquilidad emocional.`;
             } else if (diferencia > 0) {
                 veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-green-600 text-white';
-                veredicto.textContent = `✅ Conviene AMORTIZAR. Te ahorras ${diferencia.toFixed(2)} € más que invirtiendo.`;
+                veredicto.textContent = `✅ Conviene AMORTIZAR. Ahorras ${ahorroReal.toFixed(2)} € en intereses y terminas en ${formatearMesAnio(fechaFinCon)} en lugar de ${formatearMesAnio(fechaFinSin)} (${diferencia.toFixed(2)} € mejor que invertir).`;
             } else {
                 veredicto.className = 'p-5 rounded-xl font-semibold text-base text-center shadow-md bg-indigo-600 text-white';
-                veredicto.textContent = `📈 Conviene INVERTIR/AHORRAR. Ganas ${Math.abs(diferencia).toFixed(2)} € más que amortizando.`;
+                veredicto.textContent = `📈 Conviene INVERTIR. Ganas ${gananciaNetaAhorro.toFixed(2)} € netos en ${horizonte} meses vs ${ahorroReal.toFixed(2)} € ahorrados amortizando (${Math.abs(diferencia).toFixed(2)} € mejor invertir).`;
             }
 
-            // Gráfico de evolución diferencial
-            const labelsChart = [];
-            const dataAmort = [];
-            const dataAhorro = [];
-            let acumAmort = 0; let acumAhorro = 0; let saldoA = deuda; let saldoB = deudaAmort; let capAh = capital;
-            for(let i = 1; i <= horizonte; i++) {
-                const nm = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-                labelsChart.push(nm[(i-1)%12]);
-                const intA = saldoA * rm; acumAmort += intA; saldoA = Math.max(0, saldoA - (cuotaOriginal - intA));
-                const intB = saldoB * rm; saldoB = Math.max(0, saldoB - (cuotaAmort - intB));
-                const ahorradoEstesMes = intA - intB; acumAmort = interesesSin * (i/horizonte) - interesesCon * (i/horizonte);
-                const intAh = capAh * rmAhorro; capAh += intAh; acumAhorro = (capAh - capital) * 0.81;
-                dataAmort.push(parseFloat(acumAmort.toFixed(2)));
-                dataAhorro.push(parseFloat(acumAhorro.toFixed(2)));
+            // ── Gráfico acumulado ──────────────────────────────────────────
+            // La línea de amortizar: crece lineal desde mes mesesCon hasta mesesDeuda
+            // La línea de inversión: crece por interés compuesto durante su propio horizonte
+            const maxMeses = Math.max(mesesDeuda, horizonte);
+            const step = Math.max(1, Math.ceil(maxMeses / 60));
+            const labelsChart = [], dataAmort = [], dataAhorro = [];
+            let capGraf = capitalAjustado;
+
+            for (let i = 1; i <= maxMeses; i += step) {
+                // Ahorro por amortizar: se materializa al terminar antes la hipoteca
+                // Modelamos: el ahorro en intereses se realiza progresivamente tras la fecha fin amortizada
+                const fracAmort = i <= mesesCon ? 0
+                    : mesesAhorrados > 0
+                        ? Math.min(1, (i - mesesCon) / mesesAhorrados) * ahorroReal
+                        : ahorroReal;
+
+                // Inversión: crece compuestamente durante su horizonte propio
+                for (let j = 0; j < step; j++) {
+                    if (i - step + j < horizonte) capGraf += capGraf * rmAhorro;
+                }
+                const gananciaAcum = i <= horizonte
+                    ? Math.max(0, (capGraf - capitalAjustado) * 0.81)
+                    : (capAhorro - capitalAjustado) * 0.81; // ya no crece más
+
+                labelsChart.push(`M${i}`);
+                dataAmort.push(parseFloat(fracAmort.toFixed(2)));
+                dataAhorro.push(parseFloat(gananciaAcum.toFixed(2)));
             }
 
             const ctx = document.getElementById('sim-chart').getContext('2d');
-            if(simChart) simChart.destroy();
+            if (simChart) simChart.destroy();
             simChart = new Chart(ctx, {
                 type: 'line',
                 data: { labels: labelsChart, datasets: [
-                    { label: 'Ahorro intereses (amortizar)', data: dataAmort, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.3, borderWidth: 2 },
-                    { label: 'Ganancia neta (invertir)', data: dataAhorro, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, borderWidth: 2 }
+                    { label: 'Ahorro acumulado (amortizar)', data: dataAmort, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 0 },
+                    { label: 'Ganancia neta (invertir)',     data: dataAhorro, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 0 }
                 ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } },
+                               tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(2)} €` } } },
+                    scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+                              y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v.toFixed(0) + ' €' } } }
+                }
             });
 
             document.getElementById('sim-resultado').classList.remove('hidden');
